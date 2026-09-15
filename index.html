@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DECENT-ENERGY MVP</title>
+    <!-- Load React, ReactDOM, Babel, and Tailwind CSS -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- COMPONENTS ---
+
+        const Card = ({ children, title, subtitle, className = "" }) => (
+            <div className={`bg-white rounded-xl shadow-sm border border-slate-200 p-5 ${className}`}>
+                {title && <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">{title}</h3>}
+                {subtitle && <p className="text-xs text-slate-400 mb-4">{subtitle}</p>}
+                {children}
+            </div>
+        );
+
+        const StatusBadge = ({ status, type }) => {
+            const colors = {
+                success: "bg-emerald-100 text-emerald-700",
+                warning: "bg-amber-100 text-amber-700",
+                danger: "bg-rose-100 text-rose-700",
+                info: "bg-blue-100 text-blue-700"
+            };
+            return (
+                <span className={`px-2 py-1 rounded text-xs font-semibold ${colors[type]}`}>
+                    {status}
+                </span>
+            );
+        };
+
+        // --- MAIN APP ---
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('portfolio');
+            
+            // Global State Simulation
+            const [isOnline, setIsOnline] = useState(true);
+            const [balance, setBalance] = useState(12450);
+            const [currentLoad, setCurrentLoad] = useState(1.8);
+            const [dailyUsage, setDailyUsage] = useState(8.4);
+            const [bessSoc, setBessSoc] = useState(68);
+            const [transactions, setTransactions] = useState([
+                { id: 1, date: "15 Sep 2026, 14:15", type: "Energy Credit Purchase", amount: 5000, energy: "-", balance: 12450 },
+                { id: 2, date: "15 Sep 2026, 12:00", type: "Energy Consumption", amount: -1250, energy: "8.4 kWh", balance: 7450 },
+                { id: 3, date: "14 Sep 2026, 23:59", type: "Energy Consumption", amount: -840, energy: "5.6 kWh", balance: 8700 }
+            ]);
+
+            const meterStatus = balance > 0 ? 'ACTIVE' : 'RESTRICTED';
+
+            // Consumption Simulation Loop
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    if (balance > 0 && currentLoad > 0) {
+                        // Simulate cost per tick based on load (accelerated for demo)
+                        const cost = (currentLoad * 2.5); 
+                        const usage = (currentLoad * 0.005);
+                        
+                        setBalance(prev => Math.max(0, prev - cost));
+                        setDailyUsage(prev => prev + usage);
+                    }
+                    if (balance <= 0 && currentLoad > 0) {
+                        setCurrentLoad(0);
+                    }
+                }, 1000);
+                return () => clearInterval(timer);
+            }, [balance, currentLoad]);
+
+            const buyEnergy = (amount) => {
+                const newBalance = balance + amount;
+                setBalance(newBalance);
+                const newTx = {
+                    id: Date.now(),
+                    date: new Date().toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}),
+                    type: "Energy Credit Purchase",
+                    amount: amount,
+                    energy: "-",
+                    balance: newBalance
+                };
+                setTransactions([newTx, ...transactions]);
+            };
+
+            const toggleLoad = (delta) => {
+                if (meterStatus === 'RESTRICTED' && delta > 0) return;
+                setCurrentLoad(prev => Math.max(0, prev + delta));
+            };
+
+            const navItems = [
+                { id: 'portfolio', name: 'PM Case Study' },
+                { id: 'dashboard', name: 'Community Dashboard' },
+                { id: 'my-energy', name: 'My Energy / Meter' },
+                { id: 'edge-node', name: 'Edge Node' },
+                { id: 'ai-energy', name: 'AI Energy' },
+                { id: 'allocation', name: 'Allocation' },
+                { id: 'network', name: 'Network View' },
+                { id: 'transactions', name: 'Transactions' },
+            ];
+
+            return (
+                <div className="flex h-screen bg-slate-50 text-slate-800 font-sans">
+                    {/* Sidebar Navigation */}
+                    <div className="w-64 bg-slate-900 text-slate-300 flex flex-col">
+                        <div className="p-6">
+                            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                DECENT-ENERGY
+                            </h1>
+                            <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider">Infrastructure MVP</p>
+                        </div>
+                        <nav className="flex-1 px-4 space-y-1 overflow-y-auto hide-scrollbar">
+                            {navItems.map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setActiveTab(item.id)}
+                                    className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors ${
+                                        activeTab === item.id ? 'bg-blue-600 text-white font-medium' : 'hover:bg-slate-800 hover:text-white'
+                                    }`}
+                                >
+                                    {item.name}
+                                </button>
+                            ))}
+                        </nav>
+                        <div className="p-4 border-t border-slate-800">
+                            <div className={`flex items-center gap-2 text-xs p-2 rounded ${isOnline ? 'bg-emerald-900/30 text-emerald-400' : 'bg-rose-900/30 text-rose-400'}`}>
+                                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
+                                {isOnline ? 'Cloud Synced' : 'Operating Locally (Edge)'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div className="flex-1 overflow-y-auto p-8">
+                        
+                        {/* PORTFOLIO TAB */}
+                        {activeTab === 'portfolio' && (
+                            <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+                                <div>
+                                    <h2 className="text-3xl font-bold text-slate-900">DECENT-ENERGY</h2>
+                                    <p className="text-lg text-slate-600 mt-2">Resilient digital infrastructure for decentralized energy communities.</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <Card title="Problem Statement">
+                                        <p className="text-sm text-slate-600 leading-relaxed">Communities with unreliable electricity need a reliable way to coordinate distributed renewable generation, battery storage and consumption while maintaining transparent access to energy—even when internet connectivity fails.</p>
+                                    </Card>
+                                    <Card title="MVP Hypothesis">
+                                        <p className="text-sm text-slate-600 leading-relaxed">If communities can monitor distributed energy resources locally and provide electricity through transparent prepaid smart metering, they can improve energy visibility, reliability and resource utilization.</p>
+                                    </Card>
+                                </div>
+                                <Card title="System Architecture Flows">
+                                    <div className="grid grid-cols-2 gap-4 text-sm text-slate-700">
+                                        <div><strong>Energy:</strong> Solar/Grid &rarr; BESS &rarr; Smart Meter &rarr; User</div>
+                                        <div><strong>Data:</strong> Sensors &rarr; Edge Node &rarr; Local AI &rarr; Controller</div>
+                                        <div><strong>Payment:</strong> Prepaid Credit &rarr; Auth &rarr; Metered Usage &rarr; Balance Update</div>
+                                        <div><strong>Network:</strong> Edge Node &harr; Edge Node &harr; Cloud (Async)</div>
+                                    </div>
+                                </Card>
+                                <Card title="Product Roadmap">
+                                    <ul className="space-y-3 text-sm">
+                                        <li className="flex gap-4"><strong className="text-blue-600 w-24">V0 - Prototype</strong> <span className="text-slate-600">Interactive UI & Case Study (Current)</span></li>
+                                        <li className="flex gap-4"><strong className="text-slate-700 w-24">V1 - Digital MVP</strong> <span className="text-slate-600">Web app + Supabase + Simulated Telemetry</span></li>
+                                        <li className="flex gap-4"><strong className="text-slate-700 w-24">V2 - AI</strong> <span className="text-slate-600">Demand forecasting & energy allocation algorithms</span></li>
+                                        <li className="flex gap-4"><strong className="text-slate-700 w-24">V3 - Edge</strong> <span className="text-slate-600">Dockerized local DB, local AI, offline autonomy</span></li>
+                                        <li className="flex gap-4"><strong className="text-slate-700 w-24">V4 - Physical</strong> <span className="text-slate-600">Deployment with physical Solar, BESS, Smart Meters</span></li>
+                                    </ul>
+                                </Card>
+                            </div>
+                        )}
+
+                        {/* DASHBOARD TAB */}
+                        {activeTab === 'dashboard' && (
+                            <div className="max-w-5xl mx-auto space-y-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold">Community Energy Network</h2>
+                                    <p className="text-slate-500">Ikotun Community • Node IKT-01</p>
+                                </div>
+                                <div className="grid grid-cols-4 gap-4">
+                                    <Card title="Solar Generation"><div className="text-3xl font-light text-emerald-600">42.6 <span className="text-sm font-semibold">kW</span></div></Card>
+                                    <Card title="Community Load"><div className="text-3xl font-light text-blue-600">31.2 <span className="text-sm font-semibold">kW</span></div></Card>
+                                    <Card title="Battery (BESS)"><div className="text-3xl font-light text-purple-600">{bessSoc}% <span className="text-sm font-semibold">SOC</span></div></Card>
+                                    <Card title="Available Surplus"><div className="text-3xl font-light text-slate-700">11.4 <span className="text-sm font-semibold">kW</span></div></Card>
+                                </div>
+                                <Card title="AI Recommendation" subtitle="[ SIMULATION ] Engine Active" className="bg-blue-50 border-blue-100">
+                                    <p className="text-blue-900 font-medium mb-4">Solar generation currently exceeds community demand. Charge the BESS with the available surplus while maintaining the configured reserve for evening demand.</p>
+                                    <div className="flex gap-3">
+                                        <button className="bg-blue-600 text-white px-4 py-2 rounded shadow-sm text-sm font-medium hover:bg-blue-700">APPLY RECOMMENDATION</button>
+                                        <button className="bg-white border border-blue-200 text-blue-700 px-4 py-2 rounded shadow-sm text-sm font-medium hover:bg-blue-50">VIEW DETAILS</button>
+                                    </div>
+                                </Card>
+                            </div>
+                        )}
+
+                        {/* MY ENERGY TAB (Smart Meter Interaction) */}
+                        {activeTab === 'my-energy' && (
+                            <div className="max-w-4xl mx-auto space-y-6">
+                                <div className="flex justify-between items-end">
+                                    <div>
+                                        <h2 className="text-2xl font-bold">My Energy Account</h2>
+                                        <p className="text-slate-500">Household A • Meter IKT-00124</p>
+                                    </div>
+                                    <StatusBadge status={meterStatus} type={meterStatus === 'ACTIVE' ? 'success' : 'danger'} />
+                                </div>
+                                
+                                <div className="grid grid-cols-3 gap-6">
+                                    <Card title="Prepaid Balance" className={balance <= 1000 ? 'border-rose-300 bg-rose-50' : ''}>
+                                        <div className="text-4xl font-light text-slate-900">₦{balance.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                                        <p className="text-xs text-slate-500 mt-2">Est. remaining: {(balance / 1500).toFixed(1)} kWh</p>
+                                    </Card>
+                                    <Card title="Current Load">
+                                        <div className="text-4xl font-light text-slate-900">{currentLoad.toFixed(1)} <span className="text-base text-slate-500">kW</span></div>
+                                        <div className="flex gap-2 mt-3">
+                                            <button onClick={() => toggleLoad(-0.5)} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1 rounded text-sm">- Decrease</button>
+                                            <button onClick={() => toggleLoad(0.5)} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1 rounded text-sm">+ Increase</button>
+                                        </div>
+                                    </Card>
+                                    <Card title="Today's Usage">
+                                        <div className="text-4xl font-light text-slate-900">{dailyUsage.toFixed(2)} <span className="text-base text-slate-500">kWh</span></div>
+                                        <p className="text-xs text-slate-500 mt-2">Rate: ₦1,500 / kWh</p>
+                                    </Card>
+                                </div>
+
+                                <Card title="Top Up Account">
+                                    <p className="text-sm text-slate-600 mb-4">Simulate purchasing prepaid energy credit. This updates the local meter database.</p>
+                                    <div className="flex gap-3">
+                                        <button onClick={() => buyEnergy(1000)} className="bg-white border border-emerald-600 text-emerald-700 px-4 py-2 rounded text-sm font-medium hover:bg-emerald-50">+ ₦1,000</button>
+                                        <button onClick={() => buyEnergy(5000)} className="bg-white border border-emerald-600 text-emerald-700 px-4 py-2 rounded text-sm font-medium hover:bg-emerald-50">+ ₦5,000</button>
+                                        <button onClick={() => buyEnergy(10000)} className="bg-emerald-600 text-white px-6 py-2 rounded text-sm font-medium hover:bg-emerald-700 shadow-sm">BUY ₦10,000 CREDIT</button>
+                                    </div>
+                                </Card>
+                            </div>
+                        )}
+
+                        {/* EDGE NODE TAB */}
+                        {activeTab === 'edge-node' && (
+                            <div className="max-w-4xl mx-auto space-y-6">
+                                <div className="flex justify-between items-end">
+                                    <div>
+                                        <h2 className="text-2xl font-bold">Local Edge Infrastructure</h2>
+                                        <p className="text-slate-500">EDGE NODE 01 • Hardware Management</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setIsOnline(!isOnline)}
+                                        className={`px-4 py-2 rounded font-bold text-sm shadow-sm transition-colors ${
+                                            isOnline ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-600 text-white shadow-rose-200'
+                                        }`}
+                                    >
+                                        {isOnline ? 'INTERNET: ONLINE' : 'INTERNET: OFFLINE (TOGGLE)'}
+                                    </button>
+                                </div>
+
+                                {!isOnline && (
+                                    <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-lg text-sm flex flex-col gap-1">
+                                        <strong>⚠️ Operating in Local Edge Mode</strong>
+                                        <p>Internet connection lost. Local smart metering, access control, and energy optimization are running independently. Balances will sync to cloud when connectivity returns.</p>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <Card title="System Telemetry">
+                                        <ul className="space-y-4 text-sm">
+                                            <li className="flex justify-between border-b pb-2"><span>CPU Utilization</span> <strong>34%</strong></li>
+                                            <li className="flex justify-between border-b pb-2"><span>Memory Usage</span> <strong>48% (3.8GB / 8GB)</strong></li>
+                                            <li className="flex justify-between border-b pb-2"><span>Connected Smart Meters</span> <strong>24 / 24 Active</strong></li>
+                                            <li className="flex justify-between"><span>Last Cloud Sync</span> <strong>{isOnline ? 'Syncing live...' : '14:32 (Paused)'}</strong></li>
+                                        </ul>
+                                    </Card>
+                                    <Card title="Local Microservices">
+                                        <ul className="space-y-3 text-sm text-slate-700 font-mono">
+                                            <li className="flex items-center gap-2 text-emerald-700"><span>[ OK ]</span> Smart Metering Daemon</li>
+                                            <li className="flex items-center gap-2 text-emerald-700"><span>[ OK ]</span> Offline Authentication DB</li>
+                                            <li className="flex items-center gap-2 text-emerald-700"><span>[ OK ]</span> Energy Flow Controller</li>
+                                            <li className="flex items-center gap-2 text-emerald-700"><span>[ OK ]</span> AI Forecasting (Edge Lite)</li>
+                                            <li className={`flex items-center gap-2 ${isOnline ? 'text-emerald-700' : 'text-rose-600'}`}>
+                                                <span>{isOnline ? '[ OK ]' : '[ERR ]'}</span> Cloud API Gateway
+                                            </li>
+                                        </ul>
+                                    </Card>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* AI ENERGY TAB */}
+                        {activeTab === 'ai-energy' && (
+                            <div className="max-w-4xl mx-auto space-y-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold">AI Energy Management</h2>
+                                    <p className="text-slate-500">Predictive Load & Storage Optimization</p>
+                                </div>
+                                <div className="bg-amber-50 border border-amber-200 p-3 rounded text-sm text-amber-800 font-medium">
+                                    Note: All values on this screen are [ SIMULATION ] for MVP demonstration purposes.
+                                </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <Card title="Demand Forecast Curve">
+                                        <div className="space-y-3 text-sm">
+                                            <div className="flex justify-between items-center"><span className="text-slate-500">08:00</span> <div className="w-48 bg-slate-100 rounded h-4 overflow-hidden"><div className="bg-blue-300 h-full w-[35%]"></div></div> <strong>18 kW</strong></div>
+                                            <div className="flex justify-between items-center"><span className="text-slate-900 font-bold">12:00 (Now)</span> <div className="w-48 bg-slate-100 rounded h-4 overflow-hidden"><div className="bg-blue-500 h-full w-[65%]"></div></div> <strong>32 kW</strong></div>
+                                            <div className="flex justify-between items-center"><span className="text-slate-500">16:00</span> <div className="w-48 bg-slate-100 rounded h-4 overflow-hidden"><div className="bg-blue-300 h-full w-[85%]"></div></div> <strong>41 kW</strong></div>
+                                            <div className="flex justify-between items-center"><span className="text-slate-500">20:00</span> <div className="w-48 bg-slate-100 rounded h-4 overflow-hidden"><div className="bg-blue-300 h-full w-[100%]"></div></div> <strong>48 kW</strong></div>
+                                        </div>
+                                    </Card>
+                                    <Card title="Optimization Strategy">
+                                        <div className="space-y-2 text-sm text-slate-700">
+                                            <p className="flex justify-between"><span>Current Solar Output:</span> <strong>42.6 kW</strong></p>
+                                            <p className="flex justify-between"><span>Current Demand:</span> <strong>31.2 kW</strong></p>
+                                            <p className="flex justify-between border-b pb-2"><span>Net Available:</span> <strong className="text-emerald-600">+11.4 kW Surplus</strong></p>
+                                            <p className="mt-4 font-semibold text-slate-900">Recommended Edge Action:</p>
+                                            <ul className="list-disc pl-5 space-y-1 text-slate-600">
+                                                <li>Supply community load instantly.</li>
+                                                <li>Route 11.4 kW surplus to charge BESS.</li>
+                                                <li>Preserve 15% strict BESS reserve for predicted 20:00 demand spike.</li>
+                                            </ul>
+                                        </div>
+                                    </Card>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TRANSACTIONS TAB */}
+                        {activeTab === 'transactions' && (
+                            <div className="max-w-4xl mx-auto space-y-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold">Transaction History</h2>
+                                    <p className="text-slate-500">Immutable ledger (Local Edge DB &rarr; Cloud)</p>
+                                </div>
+                                <Card className="overflow-hidden p-0">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="bg-slate-50 border-b border-slate-200">
+                                            <tr>
+                                                <th className="px-6 py-3 text-slate-500 font-medium">Timestamp</th>
+                                                <th className="px-6 py-3 text-slate-500 font-medium">Type</th>
+                                                <th className="px-6 py-3 text-slate-500 font-medium">Amount</th>
+                                                <th className="px-6 py-3 text-slate-500 font-medium">Energy Data</th>
+                                                <th className="px-6 py-3 text-slate-500 font-medium">Resulting Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {transactions.map(tx => (
+                                                <tr key={tx.id} className="hover:bg-slate-50 transition-colors">
+                                                    <td className="px-6 py-4 text-slate-600">{tx.date}</td>
+                                                    <td className="px-6 py-4">{tx.type}</td>
+                                                    <td className={`px-6 py-4 font-medium ${tx.amount > 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                                        {tx.amount > 0 ? '+' : ''}₦{Math.abs(tx.amount).toLocaleString()}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-slate-500">{tx.energy}</td>
+                                                    <td className="px-6 py-4 font-semibold">₦{tx.balance.toLocaleString()}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </Card>
+                            </div>
+                        )}
+
+                        {/* ALLOCATION TAB */}
+                        {activeTab === 'allocation' && (
+                            <div className="max-w-4xl mx-auto space-y-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold">Dynamic Energy Allocation</h2>
+                                    <p className="text-slate-500">Real-time resource distribution protocol</p>
+                                </div>
+                                <Card>
+                                    <p className="text-sm text-slate-600 mb-6 max-w-2xl">
+                                        Energy allocation is optimized dynamically according to instantaneous demand, available generation, battery state, and configured community priorities. (Fairness indicator: System Balanced)
+                                    </p>
+                                    <div className="space-y-4">
+                                        {[
+                                            { label: 'Household A', val: '2.1 kW', pct: '15%' },
+                                            { label: 'Household B', val: '1.7 kW', pct: '12%' },
+                                            { label: 'Small Business', val: '4.2 kW', pct: '30%' },
+                                            { label: 'Community School', val: '2.5 kW', pct: '18%' },
+                                            { label: 'BESS Charge Routing', val: '11.4 kW', pct: '25%' },
+                                        ].map((item, i) => (
+                                            <div key={i} className="flex items-center gap-4 text-sm">
+                                                <div className="w-32 font-medium text-slate-700">{item.label}</div>
+                                                <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden">
+                                                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: item.pct }}></div>
+                                                </div>
+                                                <div className="w-20 text-right font-mono text-slate-500">{item.val}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+                            </div>
+                        )}
+
+                        {/* NETWORK TAB */}
+                        {activeTab === 'network' && (
+                            <div className="max-w-4xl mx-auto space-y-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold">Multi-Node Network View</h2>
+                                    <p className="text-slate-500">Scaling from single community to decentralized fleet</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <Card title="EDGE NODE 01" className="border-emerald-500 border-t-4">
+                                        <div className="space-y-2 text-sm">
+                                            <p className="font-semibold text-lg">Ikotun</p>
+                                            <p className="flex justify-between">Users: <strong>24</strong></p>
+                                            <p className="flex justify-between">BESS: <strong>68%</strong></p>
+                                            <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                                                <span className="text-xs text-slate-500">Status</span>
+                                                <StatusBadge status="ONLINE" type="success" />
+                                            </div>
+                                        </div>
+                                    </Card>
+                                    <Card title="EDGE NODE 02">
+                                        <div className="space-y-2 text-sm">
+                                            <p className="font-semibold text-lg">Community B</p>
+                                            <p className="flex justify-between">Users: <strong>18</strong></p>
+                                            <p className="flex justify-between">BESS: <strong>54%</strong></p>
+                                            <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                                                <span className="text-xs text-slate-500">Status</span>
+                                                <StatusBadge status="ONLINE" type="success" />
+                                            </div>
+                                        </div>
+                                    </Card>
+                                    <Card title="EDGE NODE 03" className="bg-slate-50">
+                                        <div className="space-y-2 text-sm">
+                                            <p className="font-semibold text-lg">Community C</p>
+                                            <p className="flex justify-between text-slate-500">Users: <strong>31</strong></p>
+                                            <p className="flex justify-between text-slate-500">BESS: <strong>73%</strong></p>
+                                            <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                                                <span className="text-xs text-slate-500">Status</span>
+                                                <StatusBadge status="OFFLINE (Local)" type="warning" />
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </div>
+                            </div>
+                        )}
+                        
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
