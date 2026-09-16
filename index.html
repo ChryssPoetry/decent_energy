@@ -1,454 +1,1222 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DECENT-ENERGY MVP</title>
-    <!-- Load React, ReactDOM, Babel, and Tailwind CSS -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-    </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>DECENT-ENERGY — Resilient distributed energy infrastructure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,380;9..144,480;9..144,560;9..144,680&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+:root{
+  --bg:#F2F5F1;
+  --paper:#FFFFFF;
+  --ink:#152420;
+  --ink-soft:#51625A;
+  --ink-faint:#8A968F;
+  --line:#DEE5DE;
+  --line-strong:#C7D0C6;
+  --teal:#1C6B57;
+  --teal-deep:#0F3F33;
+  --teal-tint:#E4F0EC;
+  --gold:#D9922E;
+  --gold-tint:#FBEDD4;
+  --grid-blue:#325E86;
+  --grid-tint:#E7EEF4;
+  --red:#B8412A;
+  --red-tint:#F7E7E2;
+  --serif:'Fraunces', serif;
+  --sans:'IBM Plex Sans', sans-serif;
+  --mono:'IBM Plex Mono', monospace;
+  --radius:10px;
+  --shadow: 0 1px 2px rgba(21,36,32,0.04), 0 6px 20px -8px rgba(21,36,32,0.10);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--serif); margin:0; font-weight:560; letter-spacing:-0.01em;}
+p{margin:0;}
+a{color:inherit;}
+button{font-family:var(--sans); cursor:pointer;}
+::selection{background:var(--gold-tint);}
+.mono{font-family:var(--mono);}
+.hidden-scroll::-webkit-scrollbar{width:6px;}
+.hidden-scroll::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:4px;}
+
+/* ---------- shared bits ---------- */
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  border-radius:8px; border:1px solid var(--line-strong);
+  background:var(--paper); color:var(--ink);
+  padding:10px 16px; font-size:14px; font-weight:600;
+  transition:transform .12s ease, border-color .12s ease, background .12s ease;
+}
+.btn:hover{border-color:var(--ink-faint);}
+.btn:active{transform:scale(0.98);}
+.btn-primary{background:var(--teal); border-color:var(--teal); color:#fff;}
+.btn-primary:hover{background:var(--teal-deep); border-color:var(--teal-deep);}
+.btn-gold{background:var(--gold); border-color:var(--gold); color:#241505;}
+.btn-gold:hover{filter:brightness(0.94);}
+.btn-sm{padding:7px 12px; font-size:13px; border-radius:7px;}
+.btn:disabled{opacity:0.45; cursor:not-allowed; transform:none;}
+
+.badge{
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--mono); font-size:11.5px; font-weight:600;
+  padding:4px 9px; border-radius:100px; letter-spacing:0.02em;
+}
+.badge-active{background:var(--teal-tint); color:var(--teal-deep);}
+.badge-restricted{background:var(--red-tint); color:var(--red);}
+.badge-online{background:var(--teal-tint); color:var(--teal-deep);}
+.badge-offline{background:var(--gold-tint); color:#7A5013;}
+.badge-sim{background:#EFEDF7; color:#4B3F8C;}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block;}
+
+.panel{
+  background:var(--paper); border:1px solid var(--line);
+  border-radius:var(--radius); box-shadow:var(--shadow);
+}
+.panel-pad{padding:22px;}
+.hairline{border:none; border-top:1px solid var(--line); margin:0;}
+
+.stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
+.stat-cell{background:var(--paper); padding:18px 20px;}
+.stat-label{font-size:12px; color:var(--ink-soft); margin-bottom:8px;}
+.stat-value{font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:-0.01em;}
+.stat-sub{font-size:12px; color:var(--ink-faint); margin-top:4px;}
+
+/* ---------- app shell ---------- */
+.shell{display:flex; min-height:100vh;}
+.sidebar{
+  width:236px; flex:none; background:var(--teal-deep); color:#EAF3EF;
+  display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
+}
+.sidebar-brand{padding:22px 20px 14px; display:flex; align-items:center; gap:10px; cursor:pointer;}
+.sidebar-brand-mark{width:26px; height:26px; flex:none;}
+.sidebar-brand-name{font-family:var(--serif); font-size:17px; font-weight:600; color:#fff;}
+.sidebar-sub{padding:0 20px 14px; font-size:11.5px; color:#9FC3B7; line-height:1.5;}
+.sidebar-nav{flex:1; padding:6px 10px; display:flex; flex-direction:column; gap:2px; overflow-y:auto;}
+.nav-item{
+  display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:8px;
+  color:#C9E2D9; font-size:13.5px; font-weight:500; border:none; background:transparent; text-align:left; width:100%;
+}
+.nav-item:hover{background:rgba(255,255,255,0.06); color:#fff;}
+.nav-item.active{background:rgba(255,255,255,0.12); color:#fff;}
+.nav-item svg{flex:none;}
+.sidebar-foot{padding:14px 16px 18px; border-top:1px solid rgba(255,255,255,0.10); display:flex; flex-direction:column; gap:10px;}
+.edge-pill{display:flex; align-items:center; justify-content:space-between; font-size:12px; color:#BFE1D6; background:rgba(255,255,255,0.06); padding:9px 11px; border-radius:8px;}
+.back-link{font-size:12.5px; color:#9FC3B7; display:flex; align-items:center; gap:6px; padding:0 20px 10px;}
+
+.main{flex:1; min-width:0;}
+.topbar{
+  position:sticky; top:0; z-index:5; background:rgba(242,245,241,0.92); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); padding:16px 32px; display:flex; align-items:center; justify-content:space-between;
+}
+.topbar h2{font-size:19px;}
+.topbar-meta{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+.content{padding:28px 32px 80px; max-width:1180px;}
+
+.grid-2{display:grid; grid-template-columns:1.4fr 1fr; gap:20px;}
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media (max-width:900px){.grid-2{grid-template-columns:1fr;} .grid-3{grid-template-columns:1fr;}}
+
+.section-title{font-size:12.5px; text-transform:none; color:var(--ink-soft); font-weight:600; margin-bottom:12px; display:flex; align-items:center; gap:8px;}
+
+/* recommendation card */
+.rec-card{background:var(--teal-deep); color:#EAF3EF; border-radius:var(--radius); padding:22px; position:relative; overflow:hidden;}
+.rec-card::after{content:""; position:absolute; right:-40px; top:-40px; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.05);}
+.rec-tag{font-family:var(--mono); font-size:11px; color:#9FC3B7; letter-spacing:0.03em; margin-bottom:10px;}
+.rec-body{font-size:15px; line-height:1.55; max-width:520px; margin-bottom:16px;}
+
+/* tables */
+table{width:100%; border-collapse:collapse; font-size:13.5px;}
+th{text-align:left; font-size:11.5px; color:var(--ink-soft); font-weight:600; padding:0 14px 10px; border-bottom:1px solid var(--line);}
+td{padding:13px 14px; border-bottom:1px solid var(--line); vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+
+/* progress / gauges */
+.bar-track{height:9px; border-radius:5px; background:var(--line); overflow:hidden;}
+.bar-fill{height:100%; border-radius:5px;}
+
+/* toggle switch */
+.switch{width:46px; height:26px; border-radius:100px; background:var(--line-strong); position:relative; border:none; padding:0; flex:none;}
+.switch.on{background:var(--teal);}
+.switch .knob{position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .18s ease; box-shadow:0 1px 3px rgba(0,0,0,0.25);}
+.switch.on .knob{left:23px;}
+
+/* toast */
+.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 18px; border-radius:9px; font-size:13.5px; box-shadow:0 10px 30px rgba(0,0,0,0.25); z-index:80; display:flex; align-items:center; gap:9px;}
+
+/* demo overlay */
+.demo-bar{position:fixed; left:0; right:0; bottom:0; z-index:70; background:var(--ink); color:#fff; padding:14px 28px; display:flex; align-items:center; gap:18px;}
+.demo-bar .step-index{font-family:var(--mono); font-size:12px; color:#9FC3B7; flex:none;}
+.demo-bar .caption{font-size:14px; flex:1; line-height:1.4;}
+.demo-bar .actions{display:flex; gap:8px; flex:none;}
+
+/* landing */
+.landing-nav{position:sticky; top:0; z-index:10; background:rgba(242,245,241,0.9); backdrop-filter:blur(6px); border-bottom:1px solid var(--line); padding:16px 5vw; display:flex; align-items:center; justify-content:space-between;}
+.landing-nav-links{display:flex; gap:26px; font-size:13.5px; color:var(--ink-soft);}
+.landing-nav-links a{cursor:pointer;}
+.landing-nav-links a:hover{color:var(--ink);}
+.wrap{max-width:1080px; margin:0 auto; padding:0 5vw;}
+.hero{padding:74px 5vw 60px; display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:center; max-width:1280px; margin:0 auto;}
+.hero h1{font-size:clamp(34px,4.4vw,54px); line-height:1.06; max-width:620px;}
+.hero .kicker{font-family:var(--mono); font-size:12.5px; color:var(--teal-deep); margin-bottom:18px; display:flex; align-items:center; gap:8px;}
+.hero p.lede{font-size:17px; color:var(--ink-soft); line-height:1.6; margin:20px 0 28px; max-width:480px;}
+@media (max-width:860px){.hero{grid-template-columns:1fr;} }
+
+.flow-diagram-box{background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:22px;}
+.flow-node{display:flex; flex-direction:column; align-items:center; gap:8px; text-align:center; width:88px;}
+.flow-node .ic{width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;}
+.flow-node span{font-size:11px; color:var(--ink-soft); line-height:1.3;}
+.flow-arrow{color:var(--ink-faint); flex:none;}
+
+.page-section{padding:64px 5vw; border-top:1px solid var(--line);}
+.page-section.first{border-top:none;}
+.page-section-inner{max-width:1080px; margin:0 auto;}
+.two-col{display:grid; grid-template-columns:220px 1fr; gap:48px;}
+@media (max-width:800px){.two-col{grid-template-columns:1fr; gap:20px;}}
+.eyebrow{font-size:13px; color:var(--ink-soft); font-weight:600;}
+.body-text{font-size:16px; line-height:1.68; color:var(--ink); max-width:640px;}
+.body-text + .body-text{margin-top:14px;}
+
+.card{border:1px solid var(--line); border-radius:12px; padding:20px; background:var(--paper);}
+.user-cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px;}
+
+.roadmap-row{display:grid; grid-template-columns:64px 1fr; gap:18px; padding:20px 0; border-top:1px solid var(--line);}
+.roadmap-row:first-child{border-top:none;}
+.roadmap-tag{font-family:var(--mono); font-size:13px; color:var(--teal-deep); font-weight:600;}
+
+.story-card{border:1px solid var(--line); border-radius:12px; padding:18px 20px; background:var(--paper);}
+.story-id{font-family:var(--mono); font-size:11.5px; color:var(--gold); font-weight:600; margin-bottom:6px;}
+
+.metric-list{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+.metric-item{background:var(--paper); padding:16px 18px; font-size:13.5px; display:flex; align-items:center; gap:10px;}
+
+.footer{padding:40px 5vw 60px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-faint); display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;}
+
+.chip-row{display:flex; gap:8px; flex-wrap:wrap;}
+.chip{font-size:12px; padding:6px 11px; border-radius:100px; background:var(--paper); border:1px solid var(--line); color:var(--ink-soft);}
+</style>
 </head>
 <body>
-    <div id="root"></div>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {useState, useEffect, useRef, useMemo} = React;
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+/* ----------------------------- ICONS ----------------------------- */
+function Icon({name, size=18, color="currentColor", strokeWidth=1.6}){
+  const p = {fill:"none", stroke:color, strokeWidth, strokeLinecap:"round", strokeLinejoin:"round"};
+  const paths = {
+    sun: <><circle cx="12" cy="12" r="4" {...p}/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8L6 18M18 6l1.8-1.8" {...p}/></>,
+    battery: <><rect x="3" y="7" width="15" height="10" rx="2" {...p}/><path d="M20 10v4" {...p}/><path d="M7 10.5h6" {...p}/></>,
+    meter: <><circle cx="12" cy="13" r="7.5" {...p}/><path d="M12 13l3-3" {...p}/><path d="M9.5 6.2L12 8M14.5 6.2L12 8" {...p}/></>,
+    node: <><rect x="4" y="4" width="16" height="6" rx="1.5" {...p}/><rect x="4" y="14" width="16" height="6" rx="1.5" {...p}/><circle cx="7.5" cy="7" r="0.9" fill={color}/><circle cx="7.5" cy="17" r="0.9" fill={color}/></>,
+    grid: <><path d="M12 2v6M12 16v6M4 8l4 2M20 8l-4 2M4 16l4-2M20 16l-4-2" {...p}/><circle cx="12" cy="12" r="2.4" {...p}/></>,
+    wallet: <><rect x="3" y="6" width="18" height="13" rx="2.5" {...p}/><path d="M3 10h18" {...p}/><circle cx="16.5" cy="14" r="1" fill={color}/></>,
+    receipt: <><path d="M6 3h12v18l-2.5-1.5L13 21l-2.5-1.5L8 21l-2-1.5V3z" {...p}/><path d="M9 8h6M9 12h6" {...p}/></>,
+    settings: <><circle cx="12" cy="12" r="3" {...p}/><path d="M19.4 13.5a1.7 1.7 0 000-3l1-1.6-1.7-1.7-1.6 1a1.7 1.7 0 00-3 0l-.3-1.9h-2.4L11 7.2a1.7 1.7 0 00-3 0l-1.6-1L4.7 7.9l1 1.6a1.7 1.7 0 000 3l-1 1.6 1.7 1.7 1.6-1a1.7 1.7 0 003 0l.3 1.9h2.4l.3-1.9a1.7 1.7 0 003 0l1.6 1 1.7-1.7z" {...p}/></>,
+    wifi: <><path d="M4 9c4.5-4 11.5-4 16 0M7 12.3c2.9-2.3 7.1-2.3 10 0M10.3 15.5a3.2 3.2 0 013.4 0" {...p}/><circle cx="12" cy="18.3" r="1" fill={color}/></>,
+    wifiOff: <><path d="M4 9c1.7-1.5 3.6-2.4 5.6-2.8M14.5 6.2c2 .4 3.9 1.3 5.5 2.8M7 12.3c1-.8 2.1-1.3 3.3-1.6M13.7 10.7c1.2.3 2.3.8 3.3 1.6M10.3 15.5a3.2 3.2 0 013.4 0" {...p}/><circle cx="12" cy="18.3" r="1" fill={color}/><path d="M2.5 3.5l19 19" {...p}/></>,
+    check: <><path d="M4 12.5l5 5L20 6.5" {...p}/></>,
+    alert: <><path d="M12 3.5l9.5 16.5H2.5z" {...p}/><path d="M12 10v4M12 17.2v.1" {...p}/></>,
+    users: <><circle cx="9" cy="8.5" r="3" {...p}/><path d="M2.8 19c0-3 2.8-5 6.2-5s6.2 2 6.2 5" {...p}/><circle cx="17" cy="9" r="2.2" {...p}/><path d="M16 14.2c2.5.3 4.2 1.9 4.2 4.3" {...p}/></>,
+    chevron: <><path d="M9 6l6 6-6 6" {...p}/></>,
+    arrow: <><path d="M4 12h15M13 6l6 6-6 6" {...p}/></>,
+    home: <><path d="M4 11.5L12 4l8 7.5" {...p}/><path d="M6 10v9h12v-9" {...p}/></>,
+    ai: <><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2" {...p}/><circle cx="12" cy="12" r="3.5" {...p}/></>,
+    doc: <><path d="M7 3h7l4 4v14H7z" {...p}/><path d="M14 3v4h4" {...p}/><path d="M9.5 12h5M9.5 15.5h5" {...p}/></>,
+    plug: <><path d="M9 3v5M15 3v5M7 8h10v3a5 5 0 01-5 5 5 5 0 01-5-5z" {...p}/><path d="M12 16v5" {...p}/></>,
+    bolt: <><path d="M13 2L4 14h6l-1 8 9-12h-6z" {...p}/></>,
+    building: <><path d="M5 21V5a1 1 0 011-1h7a1 1 0 011 1v16" {...p}/><path d="M14 10h4a1 1 0 011 1v10" {...p}/><path d="M8 8h.01M11 8h.01M8 11h.01M11 11h.01M8 14h.01M11 14h.01" {...p}/></>,
+    shop: <><path d="M4 8l1.5-4h13L20 8" {...p}/><path d="M4 8h16v11a1 1 0 01-1 1H5a1 1 0 01-1-1z" {...p}/><path d="M9 12v-1.5" {...p}/><path d="M15 12v-1.5" {...p}/></>,
+    layers: <><path d="M12 3l9 5-9 5-9-5z" {...p}/><path d="M3 13l9 5 9-5M3 17.5l9 5 9-5" {...p}/></>,
+  };
+  return <svg width={size} height={size} viewBox="0 0 24 24">{paths[name]}</svg>;
+}
 
-        // --- COMPONENTS ---
+/* ----------------------------- HELPERS ----------------------------- */
+const naira = n => "\u20A6" + Math.round(n).toLocaleString("en-NG");
+const kwh = n => n.toFixed(1) + " kWh";
+const kw = n => n.toFixed(1) + " kW";
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+function pad(n){ return n<10 ? "0"+n : ""+n; }
+function nowLabel(t){
+  const h = 6 + Math.floor(t/6);
+  const m = (t%6) * 10;
+  return pad(h%24) + ":" + pad(m);
+}
 
-        const Card = ({ children, title, subtitle, className = "" }) => (
-            <div className={`bg-white rounded-xl shadow-sm border border-slate-200 p-5 ${className}`}>
-                {title && <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">{title}</h3>}
-                {subtitle && <p className="text-xs text-slate-400 mb-4">{subtitle}</p>}
-                {children}
+/* ----------------------------- ROOT APP ----------------------------- */
+function App(){
+  const [mode, setMode] = useState("landing"); // landing | app
+  const [view, setView] = useState("dashboard");
+  const [tick, setTick] = useState(0);
+
+  const [community, setCommunity] = useState({
+    name:"Ikotun Community Energy Network",
+    users:24, solar:42.6, demand:31.2,
+    batterySOC:68, batteryCapacity:100,
+    grid:true, rate:150, reserve:15
+  });
+
+  const [household, setHousehold] = useState({
+    owner:"Adaeze Okonkwo", label:"Household A", meterId:"IKT-00124",
+    balance:12450, todayKwh:8.4, currentLoad:1.8, status:"ACTIVE"
+  });
+
+  const [meterHistory, setMeterHistory] = useState(
+    Array.from({length:18}, (_,i)=>({t:i, load: 1.2 + Math.sin(i/2)*0.5 + 0.6}))
+  );
+
+  const [transactions, setTransactions] = useState([
+    {id:1, date:"15 Sep 2026", time:"09:12", type:"Energy Credit Purchase", amount:5000, energy:null, balAfter:17240},
+    {id:2, date:"15 Sep 2026", time:"07:40", type:"Energy Consumption", amount:-1250, energy:8.3, balAfter:12240},
+    {id:3, date:"14 Sep 2026", time:"21:05", type:"Energy Consumption", amount:-840, energy:5.6, balAfter:13490},
+    {id:4, date:"14 Sep 2026", time:"12:20", type:"Energy Credit Purchase", amount:10000, energy:null, balAfter:14330},
+    {id:5, date:"13 Sep 2026", time:"19:47", type:"Energy Consumption", amount:-960, energy:6.4, balAfter:4330},
+  ]);
+
+  const [edge, setEdge] = useState({online:true, cpu:34, mem:48, lastSync:"14:32", syncing:false, queued:0});
+  const [aiApplied, setAiApplied] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [demoStep, setDemoStep] = useState(-1);
+  const consumeAccum = useRef(0);
+
+  function showToast(msg){
+    setToast(msg);
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=>setToast(null), 3200);
+  }
+
+  /* ---- simulation ticker ---- */
+  useEffect(()=>{
+    const id = setInterval(()=>{
+      setTick(t=>t+1);
+      setCommunity(c=>{
+        const solar = clamp(c.solar + (Math.random()-0.5)*2.2, 6, 48);
+        const demand = clamp(c.demand + (Math.random()-0.5)*1.6, 18, 46);
+        const surplus = solar - demand;
+        const soc = clamp(c.batterySOC + (surplus>0 ? 0.35 : -0.3), 4, 100);
+        return {...c, solar, demand, batterySOC:soc};
+      });
+      setEdge(e=>({...e, cpu: clamp(e.cpu + (Math.random()-0.5)*6, 18, 72), mem: clamp(e.mem + (Math.random()-0.5)*4, 28, 78)}));
+      setHousehold(h=>{
+        if(h.status!=="ACTIVE") return h;
+        const load = clamp(h.currentLoad + (Math.random()-0.5)*0.5, 0.4, 3.6);
+        const kwhStep = load * (10/60); // 10 simulated minutes per tick
+        const cost = kwhStep * community_rate();
+        let balance = h.balance - cost;
+        consumeAccum.current += kwhStep;
+        let status = h.status;
+        if(balance<=0){ balance = 0; status="RESTRICTED"; }
+        setMeterHistory(mh=>{
+          const next = [...mh.slice(-23), {t:(mh[mh.length-1]?.t||0)+1, load}];
+          return next;
+        });
+        return {...h, currentLoad: status==="RESTRICTED"?0:load, todayKwh: h.todayKwh + kwhStep, balance, status};
+      });
+    }, 3200);
+    return ()=>clearInterval(id);
+    function community_rate(){ return community.rate; }
+    // eslint-disable-next-line
+  }, [community.rate]);
+
+  /* ---- periodically log a consumption transaction ---- */
+  useEffect(()=>{
+    if(tick>0 && tick % 6 === 0 && consumeAccum.current > 0.05){
+      const e = consumeAccum.current;
+      consumeAccum.current = 0;
+      const cost = Math.round(e * community.rate);
+      setTransactions(txs=>{
+        const balAfter = Math.round(household.balance);
+        return [{id:Date.now(), date:"15 Sep 2026", time:nowLabel(tick), type:"Energy Consumption", amount:-cost, energy:Number(e.toFixed(1)), balAfter}, ...txs].slice(0,30);
+      });
+    }
+    // eslint-disable-next-line
+  }, [tick]);
+
+  function buyEnergy(amount){
+    setHousehold(h=>{
+      const balance = h.balance + amount;
+      setTransactions(txs=>[{id:Date.now(), date:"15 Sep 2026", time:nowLabel(tick), type:"Energy Credit Purchase", amount:amount, energy:null, balAfter:Math.round(balance)}, ...txs].slice(0,30));
+      return {...h, balance, status: balance>0 ? "ACTIVE" : h.status};
+    });
+    showToast("Credit purchase confirmed — " + naira(amount) + " added to balance.");
+  }
+
+  function boostConsumption(){
+    setHousehold(h=>({...h, currentLoad: 3.2}));
+  }
+
+  function toggleEdge(){
+    setEdge(e=>{
+      if(e.online){
+        showToast("Internet connection lost — Edge Node 01 is now operating locally.");
+        return {...e, online:false, queued: e.queued + Math.floor(20+Math.random()*40)};
+      }else{
+        setTimeout(()=>{
+          setEdge(e2=>({...e2, syncing:false, lastSync: nowLabel(tick), queued:0}));
+          showToast("Synchronized " + (e.queued||42) + " local records to the cloud.");
+        }, 1900);
+        return {...e, online:true, syncing:true};
+      }
+    });
+  }
+
+  function applyRecommendation(){
+    setAiApplied(true);
+    showToast("Recommendation applied — charging BESS with surplus solar (simulation).");
+  }
+
+  const surplus = community.solar - community.demand;
+
+  /* ---- demo mode script ---- */
+  const demoScript = [
+    {view:"dashboard", caption:"Ikotun Community Energy Network — live solar generation, battery state, demand and grid connection in one view.", action:null},
+    {view:"myenergy", caption:"Adaeze's household runs on a prepaid energy account. Balance, today's usage and access status update in real time.", action:null},
+    {view:"myenergy", caption:"Simulating a rise in consumption — watch the meter reading climb and the prepaid balance fall.", action:()=>boostConsumption()},
+    {view:"myenergy", caption:"Topping up instantly restores access — balance and status update the moment credit is purchased.", action:()=>buyEnergy(5000)},
+    {view:"edge", caption:"Edge Node 01 is the community's local brain — metering, authentication and control all run on-site.", action:null},
+    {view:"edge", caption:"Cutting the internet connection — local smart metering, balances and access decisions keep working with no cloud in the loop.", action:()=>setEdge(e=>e.online?{...e, online:false, queued:34}:e)},
+    {view:"edge", caption:"Reconnecting triggers synchronization — locally-queued readings and transactions flow back up to the cloud.", action:()=>setEdge(e=>{ if(!e.online){ setTimeout(()=>setEdge(e2=>({...e2, syncing:false, lastSync:nowLabel(tick), queued:0})),1700); return {...e, online:true, syncing:true};} return e; })},
+    {view:"ai", caption:"The AI layer forecasts demand and recommends how to route today's solar surplus. Every figure here is a labelled simulation.", action:null},
+    {view:"ai", caption:"Applying the recommendation is a decision-support action, not a live hardware control command.", action:()=>applyRecommendation()},
+    {view:"dashboard", caption:"Generate, store, meter and manage — the same loop keeps running whether the community is online or off the grid.", action:null},
+  ];
+
+  function startDemo(){ setMode("app"); setView(demoScript[0].view); setDemoStep(0); }
+  function stepDemo(dir){
+    const next = demoStep + dir;
+    if(next<0){ return; }
+    if(next>=demoScript.length){ setDemoStep(-1); return; }
+    setDemoStep(next);
+    setView(demoScript[next].view);
+    if(dir>0 && demoScript[next].action) demoScript[next].action();
+  }
+
+  const navItems = [
+    {id:"dashboard", label:"Dashboard", icon:"home"},
+    {id:"myenergy", label:"My Energy", icon:"wallet"},
+    {id:"meter", label:"Smart Meter", icon:"meter"},
+    {id:"community", label:"Community", icon:"users"},
+    {id:"ai", label:"AI Energy", icon:"ai"},
+    {id:"edge", label:"Edge Node", icon:"node"},
+    {id:"transactions", label:"Transactions", icon:"receipt"},
+    {id:"settings", label:"Settings", icon:"settings"},
+  ];
+
+  if(mode==="landing"){
+    return <Landing onOpen={()=>{setMode("app"); setView("dashboard");}} onDemo={startDemo}/>;
+  }
+
+  return (
+    <div className="shell">
+      <aside className="sidebar">
+        <div className="sidebar-brand" onClick={()=>setMode("landing")}>
+          <div className="sidebar-brand-mark"><Icon name="bolt" size={24} color="#E2B15C"/></div>
+          <div className="sidebar-brand-name">DECENT-ENERGY</div>
+        </div>
+        <div className="back-link" onClick={()=>setMode("landing")} style={{cursor:"pointer"}}>
+          <Icon name="arrow" size={13}/> Case study &amp; overview
+        </div>
+        <nav className="sidebar-nav">
+          {navItems.map(n=>(
+            <button key={n.id} className={"nav-item"+(view===n.id?" active":"")} onClick={()=>setView(n.id)}>
+              <Icon name={n.icon} size={17}/>{n.label}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-foot">
+          <div className="edge-pill">
+            <span style={{display:"flex",alignItems:"center",gap:7}}>
+              <Icon name={edge.online?"wifi":"wifiOff"} size={14}/> Edge Node 01
+            </span>
+            <span className={"badge "+(edge.online?"badge-online":"badge-offline")}>{edge.online?"ONLINE":"OFFLINE"}</span>
+          </div>
+          <button className="btn btn-gold btn-sm" style={{justifyContent:"center"}} onClick={startDemo}>
+            <Icon name="chevron" size={14}/> Demo mode
+          </button>
+        </div>
+      </aside>
+
+      <div className="main">
+        <TopBar view={view} community={community}/>
+        <div className="content">
+          {view==="dashboard" && <Dashboard community={community} household={household} edge={edge} surplus={surplus} aiApplied={aiApplied} onApply={applyRecommendation} setView={setView}/>}
+          {view==="myenergy" && <MyEnergy household={household} community={community} onBuy={buyEnergy} onBoost={boostConsumption} history={meterHistory}/>}
+          {view==="meter" && <SmartMeter household={household} community={community} edge={edge} history={meterHistory} onBoost={boostConsumption}/>}
+          {view==="community" && <Community community={community} edge={edge} surplus={surplus}/>}
+          {view==="ai" && <AIEnergy community={community} surplus={surplus} aiApplied={aiApplied} onApply={applyRecommendation}/>}
+          {view==="edge" && <EdgeNode edge={edge} onToggle={toggleEdge} community={community}/>}
+          {view==="transactions" && <Transactions transactions={transactions}/>}
+          {view==="settings" && <Settings community={community} setCommunity={setCommunity} household={household}/>}
+        </div>
+      </div>
+
+      {toast && <div className="toast"><Icon name="check" size={15} color="#8fe3c4"/>{toast}</div>}
+
+      {demoStep>=0 && (
+        <div className="demo-bar">
+          <span className="step-index">STEP {demoStep+1} / {demoScript.length}</span>
+          <span className="caption">{demoScript[demoStep].caption}</span>
+          <span className="actions">
+            <button className="btn btn-sm" style={{background:"transparent", borderColor:"rgba(255,255,255,0.3)", color:"#fff"}} onClick={()=>stepDemo(-1)} disabled={demoStep===0}>Back</button>
+            <button className="btn btn-gold btn-sm" onClick={()=>stepDemo(1)}>{demoStep===demoScript.length-1? "Finish" : "Next"}</button>
+            <button className="btn btn-sm" style={{background:"transparent", borderColor:"rgba(255,255,255,0.3)", color:"#fff"}} onClick={()=>setDemoStep(-1)}>Exit</button>
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TopBar({view, community}){
+  const titles = {
+    dashboard:["Community dashboard", community.name],
+    myenergy:["My energy", "Household A · Prepaid account"],
+    meter:["Smart meter", "Meter IKT-00124"],
+    community:["Community", community.name],
+    ai:["AI energy management", "Forecast & optimization · simulation"],
+    edge:["Edge node", "Local infrastructure · Edge Node 01"],
+    transactions:["Transactions", "Prepaid credit & consumption history"],
+    settings:["Settings", "Community & tariff configuration"],
+  };
+  const [t, sub] = titles[view] || ["", ""];
+  return (
+    <div className="topbar">
+      <div>
+        <h2>{t}</h2>
+        <div className="topbar-meta">{sub}</div>
+      </div>
+      <span className="badge badge-sim"><Icon name="ai" size={12}/> SIMULATED DATA</span>
+    </div>
+  );
+}
+
+/* ----------------------------- DASHBOARD ----------------------------- */
+function Dashboard({community, household, edge, surplus, aiApplied, onApply, setView}){
+  return (
+    <div style={{display:"flex", flexDirection:"column", gap:20}}>
+      <div className="stat-grid">
+        <Stat label="Solar generation" value={kw(community.solar)} sub="live · fluctuating with cloud cover" icon="sun" color="var(--gold)"/>
+        <Stat label="Community load" value={kw(community.demand)} sub={community.users + " connected households & businesses"} icon="bolt" color="var(--teal)"/>
+        <Stat label="Battery (BESS)" value={community.batterySOC.toFixed(0)+"%"} sub={(community.batteryCapacity*community.batterySOC/100).toFixed(0)+" of "+community.batteryCapacity+" kWh"} icon="battery" color="var(--teal)"/>
+        <Stat label="Grid connection" value={community.grid?"CONNECTED":"DISCONNECTED"} sub="backup supply, standby" icon="grid" color="var(--grid-blue)"/>
+      </div>
+
+      <div className="grid-2">
+        <div className="panel panel-pad">
+          <div className="section-title"><Icon name="layers" size={15}/> Available energy right now</div>
+          <div style={{display:"flex", alignItems:"baseline", gap:10, marginBottom:14}}>
+            <span className="mono" style={{fontSize:34, fontWeight:600, color: surplus>=0?"var(--teal-deep)":"var(--red)"}}>{surplus>=0?"+":""}{surplus.toFixed(1)} kW</span>
+            <span style={{fontSize:13.5, color:"var(--ink-soft)"}}>{surplus>=0 ? "surplus available to store or distribute" : "deficit — drawing from battery / grid"}</span>
+          </div>
+          <div className="bar-track" style={{marginBottom:6}}>
+            <div className="bar-fill" style={{width: clamp((community.demand/ (community.solar+0.001))*100,4,100)+"%", background: surplus>=0 ? "var(--teal)" : "var(--red)"}}></div>
+          </div>
+          <div style={{display:"flex", justifyContent:"space-between", fontSize:12, color:"var(--ink-faint)"}}>
+            <span>Demand {kw(community.demand)}</span>
+            <span>Solar {kw(community.solar)}</span>
+          </div>
+          <hr className="hairline" style={{margin:"18px 0"}}/>
+          <div style={{display:"flex", gap:24, flexWrap:"wrap"}}>
+            <MiniFact label="Users on network" value={community.users}/>
+            <MiniFact label="Meters connected" value={community.users}/>
+            <MiniFact label="Edge node" value={edge.online?"Online":"Local mode"}/>
+          </div>
+        </div>
+
+        <div className="rec-card">
+          <div className="rec-tag">AI RECOMMENDATION · SIMULATION</div>
+          <div className="rec-body">
+            {surplus>=0
+              ? "Solar generation currently exceeds community demand. Charge the BESS with the available surplus while maintaining the configured reserve for evening demand."
+              : "Community demand currently exceeds solar generation. Draw the shortfall from BESS and hold grid supply in reserve for essential loads."}
+          </div>
+          <div style={{display:"flex", gap:10}}>
+            <button className="btn btn-gold btn-sm" onClick={onApply} disabled={aiApplied}>{aiApplied? "Applied ✓" : "Apply recommendation"}</button>
+            <button className="btn btn-sm" style={{background:"transparent", color:"#EAF3EF", borderColor:"rgba(255,255,255,0.3)"}} onClick={()=>setView("ai")}>View details</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid-2">
+        <div className="panel panel-pad">
+          <div className="section-title"><Icon name="wallet" size={15}/> Your household — {household.owner}</div>
+          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+            <div>
+              <div style={{fontSize:12, color:"var(--ink-soft)"}}>Prepaid balance</div>
+              <div className="mono" style={{fontSize:26, fontWeight:600}}>{naira(household.balance)}</div>
             </div>
-        );
+            <span className={"badge "+(household.status==="ACTIVE"?"badge-active":"badge-restricted")}>
+              <span className="dot"/> {household.status==="ACTIVE" ? "ENERGY ACCESS ACTIVE" : "ACCESS RESTRICTED"}
+            </span>
+          </div>
+          <button className="btn btn-primary" style={{marginTop:16}} onClick={()=>setView("myenergy")}>Go to my energy account</button>
+        </div>
+        <div className="panel panel-pad">
+          <div className="section-title"><Icon name="node" size={15}/> Edge Node 01</div>
+          <div style={{fontSize:13.5, color:"var(--ink-soft)", lineHeight:1.6}}>
+            Local services keep running independent of the internet — metering, authentication, monitoring, AI forecasting and access control.
+          </div>
+          <button className="btn" style={{marginTop:16}} onClick={()=>setView("edge")}>Open edge node</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        const StatusBadge = ({ status, type }) => {
-            const colors = {
-                success: "bg-emerald-100 text-emerald-700",
-                warning: "bg-amber-100 text-amber-700",
-                danger: "bg-rose-100 text-rose-700",
-                info: "bg-blue-100 text-blue-700"
-            };
-            return (
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${colors[type]}`}>
-                    {status}
-                </span>
-            );
-        };
+function Stat({label, value, sub, icon, color}){
+  return (
+    <div className="stat-cell">
+      <div className="stat-label" style={{display:"flex", alignItems:"center", gap:6}}><Icon name={icon} size={13} color={color}/>{label}</div>
+      <div className="stat-value">{value}</div>
+      <div className="stat-sub">{sub}</div>
+    </div>
+  );
+}
+function MiniFact({label, value}){
+  return <div><div style={{fontSize:11.5, color:"var(--ink-faint)"}}>{label}</div><div className="mono" style={{fontSize:15, fontWeight:600}}>{value}</div></div>;
+}
 
-        // --- MAIN APP ---
+/* ----------------------------- MY ENERGY ----------------------------- */
+function MyEnergy({household, community, onBuy, onBoost, history}){
+  const [custom, setCustom] = useState("");
+  const remaining = household.balance / community.rate;
+  return (
+    <div style={{display:"flex", flexDirection:"column", gap:20}}>
+      <div className="panel panel-pad">
+        <div style={{display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap:16}}>
+          <div>
+            <div style={{fontSize:12.5, color:"var(--ink-soft)"}}>{household.owner} · {household.label} · Meter {household.meterId}</div>
+            <div className="mono" style={{fontSize:40, fontWeight:600, marginTop:6}}>{naira(household.balance)}</div>
+            <div style={{fontSize:13, color:"var(--ink-faint)", marginTop:4}}>Prepaid balance</div>
+          </div>
+          <span className={"badge "+(household.status==="ACTIVE"?"badge-active":"badge-restricted")} style={{height:"fit-content"}}>
+            <span className="dot"/> {household.status==="ACTIVE" ? "ENERGY ACCESS ACTIVE" : "ACCESS RESTRICTED"}
+          </span>
+        </div>
+        <hr className="hairline" style={{margin:"20px 0"}}/>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:18}}>
+          <MiniFact label="Today's consumption" value={kwh(household.todayKwh)}/>
+          <MiniFact label="Current consumption" value={kw(household.currentLoad)}/>
+          <MiniFact label="Estimated remaining" value={kwh(remaining)}/>
+          <MiniFact label="Energy rate" value={naira(community.rate)+"/kWh"}/>
+        </div>
+      </div>
 
-        function App() {
-            const [activeTab, setActiveTab] = useState('portfolio');
-            
-            // Global State Simulation
-            const [isOnline, setIsOnline] = useState(true);
-            const [balance, setBalance] = useState(12450);
-            const [currentLoad, setCurrentLoad] = useState(1.8);
-            const [dailyUsage, setDailyUsage] = useState(8.4);
-            const [bessSoc, setBessSoc] = useState(68);
-            const [transactions, setTransactions] = useState([
-                { id: 1, date: "15 Sep 2026, 14:15", type: "Energy Credit Purchase", amount: 5000, energy: "-", balance: 12450 },
-                { id: 2, date: "15 Sep 2026, 12:00", type: "Energy Consumption", amount: -1250, energy: "8.4 kWh", balance: 7450 },
-                { id: 3, date: "14 Sep 2026, 23:59", type: "Energy Consumption", amount: -840, energy: "5.6 kWh", balance: 8700 }
-            ]);
+      <div className="grid-2">
+        <div className="panel panel-pad">
+          <div className="section-title">Buy energy</div>
+          <p style={{fontSize:13.5, color:"var(--ink-soft)", marginBottom:16}}>Top up your prepaid balance. Access restores immediately after purchase.</p>
+          <div style={{display:"flex", gap:10, flexWrap:"wrap", marginBottom:14}}>
+            {[1000,2500,5000,10000].map(a=>(
+              <button key={a} className="btn" onClick={()=>onBuy(a)}>{naira(a)}</button>
+            ))}
+          </div>
+          <div style={{display:"flex", gap:8}}>
+            <input value={custom} onChange={e=>setCustom(e.target.value.replace(/[^0-9]/g,""))} placeholder="Custom amount (₦)"
+              style={{flex:1, padding:"10px 12px", border:"1px solid var(--line-strong)", borderRadius:8, fontFamily:"var(--mono)", fontSize:13.5}}/>
+            <button className="btn btn-primary" onClick={()=>{ if(custom){ onBuy(Number(custom)); setCustom(""); } }}>Buy energy</button>
+          </div>
+        </div>
+        <div className="panel panel-pad">
+          <div className="section-title">Simulate usage</div>
+          <p style={{fontSize:13.5, color:"var(--ink-soft)", marginBottom:16}}>See how rising consumption draws down your balance in real time.</p>
+          <MeterSpark data={history}/>
+          <button className="btn" style={{marginTop:14}} onClick={onBoost}>Increase simulated consumption</button>
+        </div>
+      </div>
 
-            const meterStatus = balance > 0 ? 'ACTIVE' : 'RESTRICTED';
+      <div className="panel panel-pad">
+        <div className="section-title"><Icon name="battery" size={15}/> Your contribution to the community</div>
+        <p style={{fontSize:13.5, color:"var(--ink-soft)", lineHeight:1.6}}>
+          Your household draws from a shared pool of solar generation and battery storage. When the community has surplus solar,
+          your consumption is served directly from generation rather than the battery — reducing wear on the BESS and grid draw for everyone.
+        </p>
+      </div>
+    </div>
+  );
+}
 
-            // Consumption Simulation Loop
-            useEffect(() => {
-                const timer = setInterval(() => {
-                    if (balance > 0 && currentLoad > 0) {
-                        // Simulate cost per tick based on load (accelerated for demo)
-                        const cost = (currentLoad * 2.5); 
-                        const usage = (currentLoad * 0.005);
-                        
-                        setBalance(prev => Math.max(0, prev - cost));
-                        setDailyUsage(prev => prev + usage);
-                    }
-                    if (balance <= 0 && currentLoad > 0) {
-                        setCurrentLoad(0);
-                    }
-                }, 1000);
-                return () => clearInterval(timer);
-            }, [balance, currentLoad]);
+function MeterSpark({data}){
+  const w=520,h=90,pad=6;
+  const max = Math.max(...data.map(d=>d.load), 1) * 1.1;
+  const pts = data.map((d,i)=>{
+    const x = pad + (i/(data.length-1))*(w-2*pad);
+    const y = h-pad - (d.load/max)*(h-2*pad);
+    return x+","+y;
+  }).join(" ");
+  const area = "0,"+h+" "+pts+" "+w+","+h;
+  return (
+    <svg viewBox={"0 0 "+w+" "+h} width="100%" height={h} preserveAspectRatio="none">
+      <polygon points={area} fill="var(--teal-tint)"/>
+      <polyline points={pts} fill="none" stroke="var(--teal)" strokeWidth="2"/>
+    </svg>
+  );
+}
 
-            const buyEnergy = (amount) => {
-                const newBalance = balance + amount;
-                setBalance(newBalance);
-                const newTx = {
-                    id: Date.now(),
-                    date: new Date().toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}),
-                    type: "Energy Credit Purchase",
-                    amount: amount,
-                    energy: "-",
-                    balance: newBalance
-                };
-                setTransactions([newTx, ...transactions]);
-            };
+/* ----------------------------- SMART METER ----------------------------- */
+function SmartMeter({household, community, edge, history, onBoost}){
+  return (
+    <div style={{display:"flex", flexDirection:"column", gap:20}}>
+      <div className="panel panel-pad">
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:16}}>
+          <div style={{display:"flex", alignItems:"center", gap:16}}>
+            <div style={{width:56,height:56, borderRadius:12, background:"var(--teal-tint)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+              <Icon name="meter" size={28} color="var(--teal-deep)"/>
+            </div>
+            <div>
+              <div className="mono" style={{fontSize:20, fontWeight:600}}>{household.meterId}</div>
+              <div style={{fontSize:12.5, color:"var(--ink-soft)"}}>{household.owner} · {household.label}</div>
+            </div>
+          </div>
+          <span className={"badge "+(household.status==="ACTIVE"?"badge-active":"badge-restricted")}><span className="dot"/> {household.status}</span>
+        </div>
+        <hr className="hairline" style={{margin:"20px 0"}}/>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:18}}>
+          <MiniFact label="Current load" value={kw(household.currentLoad)}/>
+          <MiniFact label="Today's usage" value={kwh(household.todayKwh)}/>
+          <MiniFact label="Prepaid balance" value={naira(household.balance)}/>
+          <MiniFact label="Connection" value={edge.online?"Metered · online":"Metered · local"}/>
+        </div>
+      </div>
 
-            const toggleLoad = (delta) => {
-                if (meterStatus === 'RESTRICTED' && delta > 0) return;
-                setCurrentLoad(prev => Math.max(0, prev + delta));
-            };
+      <div className="grid-2">
+        <div className="panel panel-pad">
+          <div className="section-title">Live load — last readings <span className="badge badge-sim" style={{marginLeft:6}}>SIMULATION</span></div>
+          <MeterSpark data={history}/>
+          <div style={{fontSize:12, color:"var(--ink-faint)", marginTop:8}}>Reading interval: ~10 simulated minutes</div>
+          <button className="btn" style={{marginTop:14}} onClick={onBoost}>Increase simulated load</button>
+        </div>
+        <div className="panel panel-pad">
+          <div className="section-title">How prepaid metering works</div>
+          <Flow steps={["Prepaid credit","Authentication","Resource access","Metered usage","Balance update"]}/>
+          <p style={{fontSize:13, color:"var(--ink-soft)", marginTop:14, lineHeight:1.6}}>
+            The meter continuously measures consumption and deducts the equivalent value from the prepaid balance.
+            When the balance reaches zero, energy access is automatically restricted until credit is purchased again.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-            const navItems = [
-                { id: 'portfolio', name: 'PM Case Study' },
-                { id: 'dashboard', name: 'Community Dashboard' },
-                { id: 'my-energy', name: 'My Energy / Meter' },
-                { id: 'edge-node', name: 'Edge Node' },
-                { id: 'ai-energy', name: 'AI Energy' },
-                { id: 'allocation', name: 'Allocation' },
-                { id: 'network', name: 'Network View' },
-                { id: 'transactions', name: 'Transactions' },
-            ];
+function Flow({steps}){
+  return (
+    <div style={{display:"flex", flexDirection:"column"}}>
+      {steps.map((s,i)=>(
+        <div key={s+"-"+i} style={{display:"flex", alignItems:"center", gap:10}}>
+          <div style={{display:"flex", flexDirection:"column", alignItems:"center"}}>
+            <div style={{width:9,height:9,borderRadius:"50%", background:"var(--teal)"}}/>
+            {i<steps.length-1 && <div style={{width:1.5, height:22, background:"var(--line-strong)"}}/>}
+          </div>
+          <div style={{fontSize:13.5, paddingBottom: i<steps.length-1?14:0}}>{s}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-            return (
-                <div className="flex h-screen bg-slate-50 text-slate-800 font-sans">
-                    {/* Sidebar Navigation */}
-                    <div className="w-64 bg-slate-900 text-slate-300 flex flex-col">
-                        <div className="p-6">
-                            <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-                                DECENT-ENERGY
-                            </h1>
-                            <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider">Infrastructure MVP</p>
-                        </div>
-                        <nav className="flex-1 px-4 space-y-1 overflow-y-auto hide-scrollbar">
-                            {navItems.map(item => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => setActiveTab(item.id)}
-                                    className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-colors ${
-                                        activeTab === item.id ? 'bg-blue-600 text-white font-medium' : 'hover:bg-slate-800 hover:text-white'
-                                    }`}
-                                >
-                                    {item.name}
-                                </button>
-                            ))}
-                        </nav>
-                        <div className="p-4 border-t border-slate-800">
-                            <div className={`flex items-center gap-2 text-xs p-2 rounded ${isOnline ? 'bg-emerald-900/30 text-emerald-400' : 'bg-rose-900/30 text-rose-400'}`}>
-                                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-rose-400'}`}></div>
-                                {isOnline ? 'Cloud Synced' : 'Operating Locally (Edge)'}
-                            </div>
-                        </div>
+/* ----------------------------- COMMUNITY ----------------------------- */
+function Community({community, edge, surplus}){
+  const [tab, setTab] = useState("overview");
+  const allocation = [
+    {name:"Household A", kw:2.1}, {name:"Household B", kw:1.7}, {name:"Household C", kw:1.4},
+    {name:"Household D", kw:1.9}, {name:"Small Business — Chidi Electronics", kw:4.2},
+    {name:"Community School", kw:2.5}, {name:"Household E", kw:1.6}, {name:"Household F", kw:1.3},
+  ];
+  const totalAlloc = allocation.reduce((s,a)=>s+a.kw,0);
+  const nodes = [
+    {id:"EDGE NODE 01", place:"Ikotun", users:24, soc:community.batterySOC, self:true},
+    {id:"EDGE NODE 02", place:"Community B", users:18, soc:54, self:false},
+    {id:"EDGE NODE 03", place:"Community C", users:31, soc:73, self:false},
+  ];
+  return (
+    <div style={{display:"flex", flexDirection:"column", gap:20}}>
+      <div style={{display:"flex", gap:8}}>
+        {[["overview","Overview"],["allocation","Allocation"],["network","Network"]].map(([id,label])=>(
+          <button key={id} className="btn btn-sm" style={tab===id?{background:"var(--teal)", borderColor:"var(--teal)", color:"#fff"}:{}} onClick={()=>setTab(id)}>{label}</button>
+        ))}
+      </div>
+
+      {tab==="overview" && (
+        <div style={{display:"flex", flexDirection:"column", gap:20}}>
+          <div className="stat-grid">
+            <Stat label="Solar generation" value={kw(community.solar)} sub="rated capacity 42.6 kW" icon="sun" color="var(--gold)"/>
+            <Stat label="Community load" value={kw(community.demand)} sub="24 connected households & 2 institutions" icon="bolt" color="var(--teal)"/>
+            <Stat label="Battery" value={community.batterySOC.toFixed(0)+"%"} sub="100 kWh BESS capacity" icon="battery" color="var(--teal)"/>
+            <Stat label="Grid" value={community.grid?"CONNECTED":"OFFLINE"} sub="standby backup supply" icon="grid" color="var(--grid-blue)"/>
+            <Stat label="Users" value={community.users} sub="active prepaid accounts" icon="users" color="var(--ink)"/>
+            <Stat label="Available energy" value={kw(Math.max(surplus,0))} sub="surplus above current demand" icon="layers" color="var(--teal)"/>
+          </div>
+          <p className="body-text" style={{fontSize:14}}>
+            Ikotun Community Energy Network combines a 42.6 kW solar array, a 100 kWh battery system and a grid backup connection,
+            serving 24 households and small institutions through individually metered, prepaid connections.
+          </p>
+        </div>
+      )}
+
+      {tab==="allocation" && (
+        <div className="panel panel-pad">
+          <div className="section-title">How available energy is allocated</div>
+          <p style={{fontSize:13.5, color:"var(--ink-soft)", marginBottom:18, lineHeight:1.6}}>
+            Energy allocation is optimized according to demand, available generation, battery state and configured community priorities.
+            A 15% reserve is held back for evening demand and essential institutional loads.
+          </p>
+          {allocation.map(a=>(
+            <div key={a.name} style={{marginBottom:12}}>
+              <div style={{display:"flex", justifyContent:"space-between", fontSize:13.5, marginBottom:5}}>
+                <span>{a.name}</span><span className="mono">{a.kw.toFixed(1)} kW</span>
+              </div>
+              <div className="bar-track"><div className="bar-fill" style={{width:(a.kw/totalAlloc*100*2.4)+"%", background:"var(--teal)"}}/></div>
+            </div>
+          ))}
+          <div style={{marginTop:16, padding:"12px 14px", background:"var(--gold-tint)", borderRadius:8, fontSize:12.5, color:"#7A5013"}}>
+            Reserve held: 15% of available capacity. This is a conceptual fairness indicator for the prototype — it is not a validated allocation algorithm.
+          </div>
+        </div>
+      )}
+
+      {tab==="network" && (
+        <div className="panel panel-pad">
+          <div className="section-title">Multi-node network — one community to many</div>
+          <p style={{fontSize:13.5, color:"var(--ink-soft)", marginBottom:18}}>DECENT-ENERGY is designed to coordinate independent community nodes. Each node keeps operating locally even if disconnected from the others.</p>
+          <div style={{display:"flex", flexDirection:"column", gap:0}}>
+            {nodes.map((n,i)=>(
+              <React.Fragment key={n.id}>
+                <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", padding:"14px 4px"}}>
+                  <div style={{display:"flex", alignItems:"center", gap:12}}>
+                    <div style={{width:40,height:40,borderRadius:10, background: n.self?"var(--teal-tint)":"var(--bg)", border:"1px solid var(--line)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+                      <Icon name="node" size={19} color={n.self?"var(--teal-deep)":"var(--ink-soft)"}/>
                     </div>
-
-                    {/* Main Content Area */}
-                    <div className="flex-1 overflow-y-auto p-8">
-                        
-                        {/* PORTFOLIO TAB */}
-                        {activeTab === 'portfolio' && (
-                            <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-                                <div>
-                                    <h2 className="text-3xl font-bold text-slate-900">DECENT-ENERGY</h2>
-                                    <p className="text-lg text-slate-600 mt-2">Resilient digital infrastructure for decentralized energy communities.</p>
-                                </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <Card title="Problem Statement">
-                                        <p className="text-sm text-slate-600 leading-relaxed">Communities with unreliable electricity need a reliable way to coordinate distributed renewable generation, battery storage and consumption while maintaining transparent access to energy—even when internet connectivity fails.</p>
-                                    </Card>
-                                    <Card title="MVP Hypothesis">
-                                        <p className="text-sm text-slate-600 leading-relaxed">If communities can monitor distributed energy resources locally and provide electricity through transparent prepaid smart metering, they can improve energy visibility, reliability and resource utilization.</p>
-                                    </Card>
-                                </div>
-                                <Card title="System Architecture Flows">
-                                    <div className="grid grid-cols-2 gap-4 text-sm text-slate-700">
-                                        <div><strong>Energy:</strong> Solar/Grid &rarr; BESS &rarr; Smart Meter &rarr; User</div>
-                                        <div><strong>Data:</strong> Sensors &rarr; Edge Node &rarr; Local AI &rarr; Controller</div>
-                                        <div><strong>Payment:</strong> Prepaid Credit &rarr; Auth &rarr; Metered Usage &rarr; Balance Update</div>
-                                        <div><strong>Network:</strong> Edge Node &harr; Edge Node &harr; Cloud (Async)</div>
-                                    </div>
-                                </Card>
-                                <Card title="Product Roadmap">
-                                    <ul className="space-y-3 text-sm">
-                                        <li className="flex gap-4"><strong className="text-blue-600 w-24">V0 - Prototype</strong> <span className="text-slate-600">Interactive UI & Case Study (Current)</span></li>
-                                        <li className="flex gap-4"><strong className="text-slate-700 w-24">V1 - Digital MVP</strong> <span className="text-slate-600">Web app + Supabase + Simulated Telemetry</span></li>
-                                        <li className="flex gap-4"><strong className="text-slate-700 w-24">V2 - AI</strong> <span className="text-slate-600">Demand forecasting & energy allocation algorithms</span></li>
-                                        <li className="flex gap-4"><strong className="text-slate-700 w-24">V3 - Edge</strong> <span className="text-slate-600">Dockerized local DB, local AI, offline autonomy</span></li>
-                                        <li className="flex gap-4"><strong className="text-slate-700 w-24">V4 - Physical</strong> <span className="text-slate-600">Deployment with physical Solar, BESS, Smart Meters</span></li>
-                                    </ul>
-                                </Card>
-                            </div>
-                        )}
-
-                        {/* DASHBOARD TAB */}
-                        {activeTab === 'dashboard' && (
-                            <div className="max-w-5xl mx-auto space-y-6">
-                                <div>
-                                    <h2 className="text-2xl font-bold">Community Energy Network</h2>
-                                    <p className="text-slate-500">Ikotun Community • Node IKT-01</p>
-                                </div>
-                                <div className="grid grid-cols-4 gap-4">
-                                    <Card title="Solar Generation"><div className="text-3xl font-light text-emerald-600">42.6 <span className="text-sm font-semibold">kW</span></div></Card>
-                                    <Card title="Community Load"><div className="text-3xl font-light text-blue-600">31.2 <span className="text-sm font-semibold">kW</span></div></Card>
-                                    <Card title="Battery (BESS)"><div className="text-3xl font-light text-purple-600">{bessSoc}% <span className="text-sm font-semibold">SOC</span></div></Card>
-                                    <Card title="Available Surplus"><div className="text-3xl font-light text-slate-700">11.4 <span className="text-sm font-semibold">kW</span></div></Card>
-                                </div>
-                                <Card title="AI Recommendation" subtitle="[ SIMULATION ] Engine Active" className="bg-blue-50 border-blue-100">
-                                    <p className="text-blue-900 font-medium mb-4">Solar generation currently exceeds community demand. Charge the BESS with the available surplus while maintaining the configured reserve for evening demand.</p>
-                                    <div className="flex gap-3">
-                                        <button className="bg-blue-600 text-white px-4 py-2 rounded shadow-sm text-sm font-medium hover:bg-blue-700">APPLY RECOMMENDATION</button>
-                                        <button className="bg-white border border-blue-200 text-blue-700 px-4 py-2 rounded shadow-sm text-sm font-medium hover:bg-blue-50">VIEW DETAILS</button>
-                                    </div>
-                                </Card>
-                            </div>
-                        )}
-
-                        {/* MY ENERGY TAB (Smart Meter Interaction) */}
-                        {activeTab === 'my-energy' && (
-                            <div className="max-w-4xl mx-auto space-y-6">
-                                <div className="flex justify-between items-end">
-                                    <div>
-                                        <h2 className="text-2xl font-bold">My Energy Account</h2>
-                                        <p className="text-slate-500">Household A • Meter IKT-00124</p>
-                                    </div>
-                                    <StatusBadge status={meterStatus} type={meterStatus === 'ACTIVE' ? 'success' : 'danger'} />
-                                </div>
-                                
-                                <div className="grid grid-cols-3 gap-6">
-                                    <Card title="Prepaid Balance" className={balance <= 1000 ? 'border-rose-300 bg-rose-50' : ''}>
-                                        <div className="text-4xl font-light text-slate-900">₦{balance.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
-                                        <p className="text-xs text-slate-500 mt-2">Est. remaining: {(balance / 1500).toFixed(1)} kWh</p>
-                                    </Card>
-                                    <Card title="Current Load">
-                                        <div className="text-4xl font-light text-slate-900">{currentLoad.toFixed(1)} <span className="text-base text-slate-500">kW</span></div>
-                                        <div className="flex gap-2 mt-3">
-                                            <button onClick={() => toggleLoad(-0.5)} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1 rounded text-sm">- Decrease</button>
-                                            <button onClick={() => toggleLoad(0.5)} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1 rounded text-sm">+ Increase</button>
-                                        </div>
-                                    </Card>
-                                    <Card title="Today's Usage">
-                                        <div className="text-4xl font-light text-slate-900">{dailyUsage.toFixed(2)} <span className="text-base text-slate-500">kWh</span></div>
-                                        <p className="text-xs text-slate-500 mt-2">Rate: ₦1,500 / kWh</p>
-                                    </Card>
-                                </div>
-
-                                <Card title="Top Up Account">
-                                    <p className="text-sm text-slate-600 mb-4">Simulate purchasing prepaid energy credit. This updates the local meter database.</p>
-                                    <div className="flex gap-3">
-                                        <button onClick={() => buyEnergy(1000)} className="bg-white border border-emerald-600 text-emerald-700 px-4 py-2 rounded text-sm font-medium hover:bg-emerald-50">+ ₦1,000</button>
-                                        <button onClick={() => buyEnergy(5000)} className="bg-white border border-emerald-600 text-emerald-700 px-4 py-2 rounded text-sm font-medium hover:bg-emerald-50">+ ₦5,000</button>
-                                        <button onClick={() => buyEnergy(10000)} className="bg-emerald-600 text-white px-6 py-2 rounded text-sm font-medium hover:bg-emerald-700 shadow-sm">BUY ₦10,000 CREDIT</button>
-                                    </div>
-                                </Card>
-                            </div>
-                        )}
-
-                        {/* EDGE NODE TAB */}
-                        {activeTab === 'edge-node' && (
-                            <div className="max-w-4xl mx-auto space-y-6">
-                                <div className="flex justify-between items-end">
-                                    <div>
-                                        <h2 className="text-2xl font-bold">Local Edge Infrastructure</h2>
-                                        <p className="text-slate-500">EDGE NODE 01 • Hardware Management</p>
-                                    </div>
-                                    <button 
-                                        onClick={() => setIsOnline(!isOnline)}
-                                        className={`px-4 py-2 rounded font-bold text-sm shadow-sm transition-colors ${
-                                            isOnline ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-600 text-white shadow-rose-200'
-                                        }`}
-                                    >
-                                        {isOnline ? 'INTERNET: ONLINE' : 'INTERNET: OFFLINE (TOGGLE)'}
-                                    </button>
-                                </div>
-
-                                {!isOnline && (
-                                    <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-lg text-sm flex flex-col gap-1">
-                                        <strong>⚠️ Operating in Local Edge Mode</strong>
-                                        <p>Internet connection lost. Local smart metering, access control, and energy optimization are running independently. Balances will sync to cloud when connectivity returns.</p>
-                                    </div>
-                                )}
-
-                                <div className="grid grid-cols-2 gap-6">
-                                    <Card title="System Telemetry">
-                                        <ul className="space-y-4 text-sm">
-                                            <li className="flex justify-between border-b pb-2"><span>CPU Utilization</span> <strong>34%</strong></li>
-                                            <li className="flex justify-between border-b pb-2"><span>Memory Usage</span> <strong>48% (3.8GB / 8GB)</strong></li>
-                                            <li className="flex justify-between border-b pb-2"><span>Connected Smart Meters</span> <strong>24 / 24 Active</strong></li>
-                                            <li className="flex justify-between"><span>Last Cloud Sync</span> <strong>{isOnline ? 'Syncing live...' : '14:32 (Paused)'}</strong></li>
-                                        </ul>
-                                    </Card>
-                                    <Card title="Local Microservices">
-                                        <ul className="space-y-3 text-sm text-slate-700 font-mono">
-                                            <li className="flex items-center gap-2 text-emerald-700"><span>[ OK ]</span> Smart Metering Daemon</li>
-                                            <li className="flex items-center gap-2 text-emerald-700"><span>[ OK ]</span> Offline Authentication DB</li>
-                                            <li className="flex items-center gap-2 text-emerald-700"><span>[ OK ]</span> Energy Flow Controller</li>
-                                            <li className="flex items-center gap-2 text-emerald-700"><span>[ OK ]</span> AI Forecasting (Edge Lite)</li>
-                                            <li className={`flex items-center gap-2 ${isOnline ? 'text-emerald-700' : 'text-rose-600'}`}>
-                                                <span>{isOnline ? '[ OK ]' : '[ERR ]'}</span> Cloud API Gateway
-                                            </li>
-                                        </ul>
-                                    </Card>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* AI ENERGY TAB */}
-                        {activeTab === 'ai-energy' && (
-                            <div className="max-w-4xl mx-auto space-y-6">
-                                <div>
-                                    <h2 className="text-2xl font-bold">AI Energy Management</h2>
-                                    <p className="text-slate-500">Predictive Load & Storage Optimization</p>
-                                </div>
-                                <div className="bg-amber-50 border border-amber-200 p-3 rounded text-sm text-amber-800 font-medium">
-                                    Note: All values on this screen are [ SIMULATION ] for MVP demonstration purposes.
-                                </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <Card title="Demand Forecast Curve">
-                                        <div className="space-y-3 text-sm">
-                                            <div className="flex justify-between items-center"><span className="text-slate-500">08:00</span> <div className="w-48 bg-slate-100 rounded h-4 overflow-hidden"><div className="bg-blue-300 h-full w-[35%]"></div></div> <strong>18 kW</strong></div>
-                                            <div className="flex justify-between items-center"><span className="text-slate-900 font-bold">12:00 (Now)</span> <div className="w-48 bg-slate-100 rounded h-4 overflow-hidden"><div className="bg-blue-500 h-full w-[65%]"></div></div> <strong>32 kW</strong></div>
-                                            <div className="flex justify-between items-center"><span className="text-slate-500">16:00</span> <div className="w-48 bg-slate-100 rounded h-4 overflow-hidden"><div className="bg-blue-300 h-full w-[85%]"></div></div> <strong>41 kW</strong></div>
-                                            <div className="flex justify-between items-center"><span className="text-slate-500">20:00</span> <div className="w-48 bg-slate-100 rounded h-4 overflow-hidden"><div className="bg-blue-300 h-full w-[100%]"></div></div> <strong>48 kW</strong></div>
-                                        </div>
-                                    </Card>
-                                    <Card title="Optimization Strategy">
-                                        <div className="space-y-2 text-sm text-slate-700">
-                                            <p className="flex justify-between"><span>Current Solar Output:</span> <strong>42.6 kW</strong></p>
-                                            <p className="flex justify-between"><span>Current Demand:</span> <strong>31.2 kW</strong></p>
-                                            <p className="flex justify-between border-b pb-2"><span>Net Available:</span> <strong className="text-emerald-600">+11.4 kW Surplus</strong></p>
-                                            <p className="mt-4 font-semibold text-slate-900">Recommended Edge Action:</p>
-                                            <ul className="list-disc pl-5 space-y-1 text-slate-600">
-                                                <li>Supply community load instantly.</li>
-                                                <li>Route 11.4 kW surplus to charge BESS.</li>
-                                                <li>Preserve 15% strict BESS reserve for predicted 20:00 demand spike.</li>
-                                            </ul>
-                                        </div>
-                                    </Card>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* TRANSACTIONS TAB */}
-                        {activeTab === 'transactions' && (
-                            <div className="max-w-4xl mx-auto space-y-6">
-                                <div>
-                                    <h2 className="text-2xl font-bold">Transaction History</h2>
-                                    <p className="text-slate-500">Immutable ledger (Local Edge DB &rarr; Cloud)</p>
-                                </div>
-                                <Card className="overflow-hidden p-0">
-                                    <table className="w-full text-sm text-left">
-                                        <thead className="bg-slate-50 border-b border-slate-200">
-                                            <tr>
-                                                <th className="px-6 py-3 text-slate-500 font-medium">Timestamp</th>
-                                                <th className="px-6 py-3 text-slate-500 font-medium">Type</th>
-                                                <th className="px-6 py-3 text-slate-500 font-medium">Amount</th>
-                                                <th className="px-6 py-3 text-slate-500 font-medium">Energy Data</th>
-                                                <th className="px-6 py-3 text-slate-500 font-medium">Resulting Balance</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100">
-                                            {transactions.map(tx => (
-                                                <tr key={tx.id} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="px-6 py-4 text-slate-600">{tx.date}</td>
-                                                    <td className="px-6 py-4">{tx.type}</td>
-                                                    <td className={`px-6 py-4 font-medium ${tx.amount > 0 ? 'text-emerald-600' : 'text-slate-900'}`}>
-                                                        {tx.amount > 0 ? '+' : ''}₦{Math.abs(tx.amount).toLocaleString()}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-slate-500">{tx.energy}</td>
-                                                    <td className="px-6 py-4 font-semibold">₦{tx.balance.toLocaleString()}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </Card>
-                            </div>
-                        )}
-
-                        {/* ALLOCATION TAB */}
-                        {activeTab === 'allocation' && (
-                            <div className="max-w-4xl mx-auto space-y-6">
-                                <div>
-                                    <h2 className="text-2xl font-bold">Dynamic Energy Allocation</h2>
-                                    <p className="text-slate-500">Real-time resource distribution protocol</p>
-                                </div>
-                                <Card>
-                                    <p className="text-sm text-slate-600 mb-6 max-w-2xl">
-                                        Energy allocation is optimized dynamically according to instantaneous demand, available generation, battery state, and configured community priorities. (Fairness indicator: System Balanced)
-                                    </p>
-                                    <div className="space-y-4">
-                                        {[
-                                            { label: 'Household A', val: '2.1 kW', pct: '15%' },
-                                            { label: 'Household B', val: '1.7 kW', pct: '12%' },
-                                            { label: 'Small Business', val: '4.2 kW', pct: '30%' },
-                                            { label: 'Community School', val: '2.5 kW', pct: '18%' },
-                                            { label: 'BESS Charge Routing', val: '11.4 kW', pct: '25%' },
-                                        ].map((item, i) => (
-                                            <div key={i} className="flex items-center gap-4 text-sm">
-                                                <div className="w-32 font-medium text-slate-700">{item.label}</div>
-                                                <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden">
-                                                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: item.pct }}></div>
-                                                </div>
-                                                <div className="w-20 text-right font-mono text-slate-500">{item.val}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </Card>
-                            </div>
-                        )}
-
-                        {/* NETWORK TAB */}
-                        {activeTab === 'network' && (
-                            <div className="max-w-4xl mx-auto space-y-6">
-                                <div>
-                                    <h2 className="text-2xl font-bold">Multi-Node Network View</h2>
-                                    <p className="text-slate-500">Scaling from single community to decentralized fleet</p>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <Card title="EDGE NODE 01" className="border-emerald-500 border-t-4">
-                                        <div className="space-y-2 text-sm">
-                                            <p className="font-semibold text-lg">Ikotun</p>
-                                            <p className="flex justify-between">Users: <strong>24</strong></p>
-                                            <p className="flex justify-between">BESS: <strong>68%</strong></p>
-                                            <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                                                <span className="text-xs text-slate-500">Status</span>
-                                                <StatusBadge status="ONLINE" type="success" />
-                                            </div>
-                                        </div>
-                                    </Card>
-                                    <Card title="EDGE NODE 02">
-                                        <div className="space-y-2 text-sm">
-                                            <p className="font-semibold text-lg">Community B</p>
-                                            <p className="flex justify-between">Users: <strong>18</strong></p>
-                                            <p className="flex justify-between">BESS: <strong>54%</strong></p>
-                                            <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                                                <span className="text-xs text-slate-500">Status</span>
-                                                <StatusBadge status="SYNCING" type="info" />
-                                            </div>
-                                        </div>
-                                    </Card>
-                                    <Card title="EDGE NODE 03">
-                                        <div className="space-y-2 text-sm">
-                                            <p className="font-semibold text-lg">Community C</p>
-                                            <p className="flex justify-between">Users: <strong>42</strong></p>
-                                            <p className="flex justify-between">BESS: <strong>12%</strong></p>
-                                            <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                                                <span className="text-xs text-slate-500">Status</span>
-                                                <StatusBadge status="OFFLINE" type="warning" />
-                                            </div>
-                                        </div>
-                                    </Card>
-                                </div>
-                            </div>
-                        )}
+                    <div>
+                      <div style={{fontWeight:600, fontSize:14}}>{n.id} {n.self && <span style={{color:"var(--ink-faint)", fontWeight:400}}>(this node)</span>}</div>
+                      <div style={{fontSize:12.5, color:"var(--ink-soft)"}}>{n.place} · {n.users} users</div>
                     </div>
+                  </div>
+                  <div className="mono" style={{fontSize:14}}>{n.soc.toFixed(0)}% BESS</div>
                 </div>
-            );
-        }
+                {i<nodes.length-1 && <div style={{textAlign:"center", color:"var(--ink-faint)", fontSize:13}}>↕</div>}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+/* ----------------------------- AI ENERGY ----------------------------- */
+function AIEnergy({community, surplus, aiApplied, onApply}){
+  const forecast = [["08:00",18],["12:00",32],["16:00",41],["20:00",48]];
+  const max = Math.max(...forecast.map(f=>f[1]), community.solar);
+  return (
+    <div style={{display:"flex", flexDirection:"column", gap:20}}>
+      <div className="panel panel-pad">
+        <div className="section-title"><Icon name="ai" size={15}/> Demand forecast <span className="badge badge-sim" style={{marginLeft:8}}>SIMULATION</span></div>
+        <div style={{display:"flex", alignItems:"flex-end", gap:22, height:150, padding:"10px 6px 0"}}>
+          {forecast.map(([t,v])=>(
+            <div key={t} style={{display:"flex", flexDirection:"column", alignItems:"center", gap:8, flex:1}}>
+              <div className="mono" style={{fontSize:12.5}}>{v} kW</div>
+              <div style={{width:"100%", maxWidth:44, height:(v/max*110)+"px", background:"var(--teal)", borderRadius:"6px 6px 2px 2px"}}/>
+              <div style={{fontSize:12, color:"var(--ink-soft)"}}>{t}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid-2">
+        <div className="panel panel-pad">
+          <div className="section-title">Current conditions</div>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:18}}>
+            <MiniFact label="Current solar" value={kw(community.solar)}/>
+            <MiniFact label="Current demand" value={kw(community.demand)}/>
+            <MiniFact label="Surplus / deficit" value={(surplus>=0?"+":"")+surplus.toFixed(1)+" kW"}/>
+            <MiniFact label="Battery reserve" value={community.reserve+"%"}/>
+          </div>
+          <hr className="hairline" style={{margin:"18px 0"}}/>
+          <div style={{fontSize:13, color:"var(--ink-soft)", fontWeight:600, marginBottom:8}}>Recommended</div>
+          <Flow steps={surplus>=0 ? ["Supply community load","Charge BESS with surplus","Preserve "+community.reserve+"% reserve for evening demand"] : ["Draw shortfall from BESS","Hold grid supply on standby","Prioritize institutional & essential loads"]}/>
+        </div>
+        <div className="rec-card">
+          <div className="rec-tag">AI RECOMMENDATION · SIMULATION</div>
+          <div className="rec-body">
+            {surplus>=0
+              ? "Solar generation currently exceeds community demand. Charge the BESS with the available surplus while maintaining the configured reserve for evening demand."
+              : "Community demand currently exceeds solar generation. Draw the shortfall from BESS and hold grid supply in reserve for essential loads."}
+          </div>
+          <button className="btn btn-gold btn-sm" onClick={onApply} disabled={aiApplied}>{aiApplied? "Applied ✓" : "Apply recommendation"}</button>
+          <p style={{fontSize:11.5, color:"#9FC3B7", marginTop:14, lineHeight:1.5}}>
+            This recommendation is generated from simplified simulated inputs for demonstration purposes.
+            It is not a scientifically validated forecast and does not control real hardware.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------- EDGE NODE ----------------------------- */
+function EdgeNode({edge, onToggle, community}){
+  const services = ["Smart Metering","Authentication","Energy Monitoring","Local Database","AI Forecasting","Energy Controller","API Gateway"];
+  return (
+    <div style={{display:"flex", flexDirection:"column", gap:20}}>
+      {!edge.online && (
+        <div className="panel panel-pad" style={{background:"var(--gold-tint)", border:"1px solid #EFCF8E", display:"flex", alignItems:"center", gap:12}}>
+          <Icon name="wifiOff" size={20} color="#7A5013"/>
+          <div style={{fontSize:13.5, color:"#7A5013"}}>
+            <strong>Operating locally.</strong> The cloud is unreachable, but metering, authentication and energy control continue on Edge Node 01 without interruption.
+          </div>
+        </div>
+      )}
+      <div className="panel panel-pad">
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:16}}>
+          <div style={{display:"flex", alignItems:"center", gap:14}}>
+            <div style={{width:52,height:52, borderRadius:12, background:"var(--teal-tint)", display:"flex", alignItems:"center", justifyContent:"center"}}>
+              <Icon name="node" size={26} color="var(--teal-deep)"/>
+            </div>
+            <div>
+              <div style={{fontWeight:600, fontSize:16}}>EDGE NODE 01</div>
+              <div style={{fontSize:12.5, color:"var(--ink-soft)"}}>{community.name}</div>
+            </div>
+          </div>
+          <div style={{display:"flex", alignItems:"center", gap:12}}>
+            <span style={{fontSize:13}}>Internet</span>
+            <button className={"switch"+(edge.online?" on":"")} onClick={onToggle}><span className="knob"/></button>
+            <span className={"badge "+(edge.online?"badge-online":"badge-offline")}>{edge.syncing ? "SYNCING…" : (edge.online?"ONLINE":"OFFLINE")}</span>
+          </div>
+        </div>
+
+        <hr className="hairline" style={{margin:"20px 0"}}/>
+        <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:18}}>
+          <MiniFact label="CPU" value={edge.cpu.toFixed(0)+"%"}/>
+          <MiniFact label="Memory" value={edge.mem.toFixed(0)+"%"}/>
+          <MiniFact label="Connected meters" value={community.users}/>
+          <MiniFact label="Last cloud sync" value={edge.online && !edge.syncing ? edge.lastSync : (edge.syncing ? "syncing…" : edge.lastSync+" (stale)")}/>
+        </div>
+      </div>
+
+      <div className="grid-2">
+        <div className="panel panel-pad">
+          <div className="section-title">Local services</div>
+          <div style={{display:"flex", flexDirection:"column", gap:10}}>
+            {services.map(s=>(
+              <div key={s} style={{display:"flex", alignItems:"center", gap:9, fontSize:13.5}}>
+                <Icon name="check" size={15} color="var(--teal)"/>{s}
+                <span style={{marginLeft:"auto", fontSize:11.5, color:"var(--ink-faint)"}}>running{!edge.online ? " · local" : ""}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="panel panel-pad">
+          <div className="section-title">Why the edge matters</div>
+          <p style={{fontSize:13.5, color:"var(--ink-soft)", lineHeight:1.65, marginBottom:14}}>
+            Community connectivity is often unreliable. Edge Node 01 keeps essential energy services — metering, prepaid balances,
+            access control and monitoring — running locally, with no dependency on the internet.
+          </p>
+          <Flow steps={["Sensors","Edge node","Local AI / control","Energy system"]}/>
+          {edge.queued>0 && !edge.online && (
+            <div style={{marginTop:14, fontSize:12.5, color:"var(--ink-soft)"}}>{edge.queued} local records queued for the next synchronization.</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------- TRANSACTIONS ----------------------------- */
+function Transactions({transactions}){
+  return (
+    <div className="panel">
+      <table>
+        <thead><tr><th>Date</th><th>Type</th><th>Energy</th><th>Amount</th><th>Balance after</th></tr></thead>
+        <tbody>
+          {transactions.map(t=>(
+            <tr key={t.id}>
+              <td>{t.date}<div style={{fontSize:11.5, color:"var(--ink-faint)"}}>{t.time}</div></td>
+              <td style={{display:"flex", alignItems:"center", gap:8}}>
+                <Icon name={t.amount>0?"wallet":"bolt"} size={15} color={t.amount>0?"var(--teal)":"var(--gold)"}/>{t.type}
+              </td>
+              <td className="mono">{t.energy ? kwh(t.energy) : "—"}</td>
+              <td className="mono" style={{color: t.amount>0 ? "var(--teal-deep)" : "var(--red)"}}>{t.amount>0?"+":""}{naira(t.amount)}</td>
+              <td className="mono">{naira(t.balAfter)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ----------------------------- SETTINGS ----------------------------- */
+function Settings({community, setCommunity, household}){
+  return (
+    <div style={{display:"flex", flexDirection:"column", gap:20, maxWidth:560}}>
+      <div className="panel panel-pad">
+        <div className="section-title">Community</div>
+        <Field label="Community name" value={community.name} onChange={v=>setCommunity(c=>({...c,name:v}))}/>
+        <Field label="Energy rate (₦ / kWh)" value={community.rate} onChange={v=>setCommunity(c=>({...c,rate:Number(v)||c.rate}))} type="number"/>
+        <Field label="Evening reserve (%)" value={community.reserve} onChange={v=>setCommunity(c=>({...c,reserve:Number(v)||c.reserve}))} type="number"/>
+      </div>
+      <div className="panel panel-pad">
+        <div className="section-title">Account</div>
+        <div style={{fontSize:13.5, color:"var(--ink-soft)", lineHeight:1.7}}>
+          Signed in as <strong>{household.owner}</strong> ({household.label}) · Meter {household.meterId}<br/>
+          Demo authentication only — no real credentials are stored.
+        </div>
+      </div>
+      <div className="panel panel-pad" style={{background:"var(--bg)"}}>
+        <div style={{fontSize:12.5, color:"var(--ink-faint)", lineHeight:1.6}}>
+          DECENT-ENERGY is a research-driven product concept and interactive prototype. No real electricity, hardware,
+          customers or financial transactions are involved. All figures shown throughout the product are simulated.
+        </div>
+      </div>
+    </div>
+  );
+}
+function Field({label, value, onChange, type="text"}){
+  return (
+    <div style={{marginBottom:14}}>
+      <div style={{fontSize:12, color:"var(--ink-soft)", marginBottom:6}}>{label}</div>
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)}
+        style={{width:"100%", padding:"10px 12px", border:"1px solid var(--line-strong)", borderRadius:8, fontFamily:"var(--mono)", fontSize:13.5}}/>
+    </div>
+  );
+}
+
+/* ============================================================
+   LANDING / CASE STUDY
+   ============================================================ */
+function Landing({onOpen, onDemo}){
+  const users = [
+    {icon:"home", title:"Household consumers", body:"Families who need transparent, predictable access to electricity without unexpected outages or opaque billing."},
+    {icon:"shop", title:"Small businesses", body:"Shops and workshops whose income depends on consistent power for equipment and refrigeration."},
+    {icon:"node", title:"Community energy operators", body:"The people who run day-to-day operations of a local micro-grid and need visibility into its health."},
+    {icon:"sun", title:"Solar / BESS operators", body:"Technical operators responsible for keeping generation and storage assets performing and maintained."},
+    {icon:"building", title:"Community institutions", body:"Schools and clinics whose essential loads need protection through prioritized allocation."},
+  ];
+  const flows = [
+    {title:"Energy flow", steps:["Solar / Grid","BESS","Smart meter","User"]},
+    {title:"Data flow", steps:["Sensors","Edge node","Local AI / control","Energy system"]},
+    {title:"Payment / access flow", steps:["Prepaid credit","Authentication","Resource access","Metered usage","Balance update"]},
+    {title:"Network flow", steps:["Edge node","Edge node","Edge node"]},
+  ];
+  const roadmap = [
+    {tag:"V0", title:"Prototype", body:"Interactive interface covering the full product story — dashboard, metering, edge resilience and AI recommendations."},
+    {tag:"V1", title:"Digital MVP", body:"Web application backed by Supabase, with simulated smart-meter telemetry feeding real account and transaction data."},
+    {tag:"V2", title:"AI", body:"Demand forecasting, battery optimization and energy allocation informed by historical consumption patterns."},
+    {tag:"V3", title:"Edge", body:"Dockerized local deployment with a local database and local AI inference, enabling true offline operation."},
+    {tag:"V4", title:"Physical pilot", body:"Solar array, BESS, smart meters and an edge computer deployed in a real community for a live pilot."},
+  ];
+  const stories = [
+    {id:"US-01", role:"household user", body:"I want to see my prepaid energy balance so that I know how much energy access I have remaining."},
+    {id:"US-02", role:"community operator", body:"I want to monitor solar generation and battery state so that I can manage available energy."},
+    {id:"US-03", role:"user", body:"I want my meter to continue recording consumption during an internet outage so that my energy service does not depend entirely on connectivity."},
+    {id:"US-04", role:"operator", body:"I want to receive AI-based energy recommendations so that I can make better use of solar and battery capacity."},
+  ];
+  const metrics = ["Energy service availability","Renewable energy utilization","Battery utilization","Forecast error","Average user consumption","Prepaid credit retention","Number of active meters","Offline operating time","Synchronization success rate"];
+
+  const [section, setSection] = useState(null);
+  function go(id){ document.getElementById(id).scrollIntoView({behavior:"smooth", block:"start"}); }
+
+  return (
+    <div>
+      <div className="landing-nav">
+        <div style={{display:"flex", alignItems:"center", gap:9, fontWeight:600, fontFamily:"var(--serif)"}}>
+          <Icon name="bolt" size={20} color="var(--gold)"/> DECENT-ENERGY
+        </div>
+        <div className="landing-nav-links">
+          <a onClick={()=>go("problem")}>Problem</a>
+          <a onClick={()=>go("users")}>Users</a>
+          <a onClick={()=>go("product")}>Product</a>
+          <a onClick={()=>go("metrics")}>Metrics</a>
+          <a onClick={()=>go("roadmap")}>Roadmap</a>
+        </div>
+        <button className="btn btn-primary btn-sm" onClick={onOpen}>Open prototype <Icon name="arrow" size={14}/></button>
+      </div>
+
+      <div className="hero">
+        <div>
+          <div className="kicker"><span className="dot" style={{color:"var(--gold)"}}/> PRODUCT CASE STUDY — CONCEPTUAL PILOT · NIGERIA</div>
+          <h1>Resilient digital infrastructure for decentralized energy communities.</h1>
+          <p className="lede">
+            DECENT-ENERGY coordinates solar generation, battery storage and prepaid smart metering through a local edge node —
+            so a community keeps running its own electricity even when the internet doesn't.
+          </p>
+          <div style={{display:"flex", gap:12}}>
+            <button className="btn btn-primary" onClick={onOpen}>Open the prototype</button>
+            <button className="btn" onClick={onDemo}>Run 2-minute demo</button>
+          </div>
+        </div>
+        <div className="flow-diagram-box">
+          <div style={{fontSize:11.5, color:"var(--ink-soft)", marginBottom:16}}>ENERGY FLOW</div>
+          <div style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
+            <FlowNode icon="sun" bg="var(--gold-tint)" color="var(--gold)" label="Solar / Grid"/>
+            <Icon name="arrow" size={16} color="var(--ink-faint)"/>
+            <FlowNode icon="battery" bg="var(--teal-tint)" color="var(--teal-deep)" label="BESS"/>
+            <Icon name="arrow" size={16} color="var(--ink-faint)"/>
+            <FlowNode icon="meter" bg="var(--grid-tint)" color="var(--grid-blue)" label="Smart meter"/>
+            <Icon name="arrow" size={16} color="var(--ink-faint)"/>
+            <FlowNode icon="home" bg="#F1EEE7" color="var(--ink-soft)" label="User"/>
+          </div>
+          <div style={{marginTop:22, paddingTop:18, borderTop:"1px solid var(--line)", fontSize:12.5, color:"var(--ink-soft)", lineHeight:1.6}}>
+            A local edge node keeps this loop running even when the cloud connection drops.
+          </div>
+        </div>
+      </div>
+
+      <section className="page-section first" id="problem">
+        <div className="page-section-inner two-col">
+          <div className="eyebrow">Problem</div>
+          <div>
+            <p className="body-text">
+              Communities with unreliable or insufficient electricity access need a way to coordinate distributed renewable
+              generation, battery storage and consumption — while maintaining transparent, fair access to the energy that is available.
+            </p>
+            <p className="body-text">
+              Existing solar-home-system dashboards typically show generation data but stop short of managing access,
+              payment and resilience together. DECENT-ENERGY treats the smart meter, not the dashboard, as the product's core interface.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section" id="users">
+        <div className="page-section-inner">
+          <div className="eyebrow" style={{marginBottom:20}}>Target users</div>
+          <div className="user-cards">
+            {users.map(u=>(
+              <div className="card" key={u.title}>
+                <Icon name={u.icon} size={22} color="var(--teal-deep)"/>
+                <div style={{fontWeight:600, fontSize:14.5, margin:"12px 0 6px"}}>{u.title}</div>
+                <div style={{fontSize:13, color:"var(--ink-soft)", lineHeight:1.55}}>{u.body}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section" id="product">
+        <div className="page-section-inner">
+          <div className="two-col" style={{marginBottom:36}}>
+            <div className="eyebrow">Product</div>
+            <div>
+              <p className="body-text">
+                Access to distributed energy through intelligent smart metering and resilient local infrastructure.
+                The smart meter is the user's gateway to the energy service. The edge node provides local intelligence and resilience.
+                AI optimizes energy management. The cloud provides optional fleet-level management, analytics and synchronization.
+              </p>
+              <div className="chip-row" style={{marginTop:16}}>
+                <span className="chip">MVP hypothesis</span>
+              </div>
+              <p className="body-text" style={{marginTop:12, fontStyle:"italic", color:"var(--ink-soft)"}}>
+                If communities can monitor distributed energy resources locally and provide electricity through transparent
+                prepaid smart metering, they can improve energy visibility, reliability and resource utilization.
+              </p>
+            </div>
+          </div>
+          <div className="grid-3">
+            {flows.map(f=>(
+              <div className="card" key={f.title}>
+                <div style={{fontWeight:600, fontSize:13.5, marginBottom:14}}>{f.title}</div>
+                <Flow steps={f.steps}/>
+              </div>
+            ))}
+            <div className="card" style={{display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"flex-start", background:"var(--teal-deep)", color:"#EAF3EF"}}>
+              <div style={{fontWeight:600, fontSize:14.5, marginBottom:8}}>See it work end to end</div>
+              <div style={{fontSize:12.5, color:"#BFE1D6", marginBottom:16, lineHeight:1.55}}>A guided, two-minute walkthrough of the entire product loop.</div>
+              <button className="btn btn-gold btn-sm" onClick={onDemo}>Run demo mode</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section" id="prototype">
+        <div className="page-section-inner two-col">
+          <div className="eyebrow">Prototype</div>
+          <div>
+            <p className="body-text">
+              The interactive prototype simulates a full community: solar generation, battery storage, 24 metered households,
+              a local edge node and an AI recommendation layer. Every number is clearly labelled as simulated — nothing here
+              controls real hardware or moves real money.
+            </p>
+            <div style={{display:"flex", gap:12, marginTop:18}}>
+              <button className="btn btn-primary" onClick={onOpen}>Open the prototype</button>
+              <button className="btn" onClick={onDemo}>Run guided demo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section" id="metrics">
+        <div className="page-section-inner">
+          <div className="eyebrow" style={{marginBottom:20}}>Key MVP metrics</div>
+          <div className="metric-list">
+            {metrics.map(m=>(
+              <div className="metric-item" key={m}><Icon name="check" size={14} color="var(--teal)"/>{m}</div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section" id="roadmap">
+        <div className="page-section-inner">
+          <div className="eyebrow" style={{marginBottom:8}}>Roadmap</div>
+          <div>
+            {roadmap.map(r=>(
+              <div className="roadmap-row" key={r.tag}>
+                <div className="roadmap-tag">{r.tag}</div>
+                <div>
+                  <div style={{fontWeight:600, fontSize:15, marginBottom:4}}>{r.title}</div>
+                  <div style={{fontSize:13.5, color:"var(--ink-soft)", lineHeight:1.55}}>{r.body}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section" id="stories">
+        <div className="page-section-inner">
+          <div className="eyebrow" style={{marginBottom:20}}>Representative user stories</div>
+          <div className="grid-3">
+            {stories.map(s=>(
+              <div className="story-card" key={s.id}>
+                <div className="story-id">{s.id}</div>
+                <div style={{fontSize:13.5, lineHeight:1.55}}>As a {s.role}, {s.body}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="footer">
+        <div>DECENT-ENERGY is a research-driven product concept and interactive MVP prototype — not a deployed commercial electricity system. All energy, financial and performance figures shown are simulated for demonstration.</div>
+        <div>Conceptual pilot geography: Nigeria</div>
+      </div>
+    </div>
+  );
+}
+
+function FlowNode({icon, bg, color, label}){
+  return (
+    <div className="flow-node">
+      <div className="ic" style={{background:bg}}><Icon name={icon} size={22} color={color}/></div>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
 </body>
 </html>
